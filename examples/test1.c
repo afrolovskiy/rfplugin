@@ -11,6 +11,8 @@ typedef struct struct2 {
 */
 
 int x;
+int* p;
+int** pp;
 //struct struct1 z;
 //struct3 w;
 

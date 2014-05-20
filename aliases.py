@@ -1,8 +1,24 @@
+import random
+
 import gcc
 
 
 class AliasAnalyzer(gcc.GimplePass):
+    FAKE_RANGE = (0, 100000)
+
     def execute(self, fun):
+        def init_shared_variable(decl):
+          name = decl.name
+          vtype = decl.type
+          while isinstance(vtype, gcc.PointerType):
+            # analyze each function independant from others so
+            # add faked locations in order to emulate shared pointers
+            # behaviour
+            faked = 'fake{}'.format(random.randint(*self.FAKE_RANGE))
+            pts[name] = set([faked])
+            name, vtype = faked, vtype.type
+          pts[name] = set()
+
         def eval_lhs(lhs):
           # x
           if isinstance(lhs, gcc.VarDecl):
@@ -33,9 +49,16 @@ class AliasAnalyzer(gcc.GimplePass):
           raise Exception('Unknown rhs type: {}'.format(type(rhs)))
 
         # initialize points-to sets
+        # initialize points-to sets
+        # initialize points-to sets for local variables
         variables = [decl.name for decl in fun.local_decls if decl.name]
-        variables.extend([v.decl.name for v in gcc.get_variables() if v.decl.name])
         pts = {v: set() for v in variables}
+        # initialize points-to sets for global variables
+        for variable in gcc.get_variables():
+          init_shared_variable(variable.decl)
+        # initialize points-to sets for function formal parameters
+        for variable in fun.decl.arguments:
+          init_shared_variable(variable)
 
         # iterate until fixed point reached
         changed = True;

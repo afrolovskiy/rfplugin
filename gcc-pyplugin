@@ -1,0 +1,3 @@
+#!/bin/sh
+${CC:-gcc} -fplugin=${PLUGIN_ROOT:-/home/alex/gcc-python-plugin}/python.so -fplugin-arg-python-script=$@
+

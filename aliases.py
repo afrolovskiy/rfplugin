@@ -1,3 +1,4 @@
+import json
 import random
 
 import gcc
@@ -86,7 +87,11 @@ class AliasAnalyzer(gcc.GimplePass):
                   pts[var].update(rhs)
                   changed = True
 
-        # TODO: assign to any result of function analysis
+        # dump result of function analysis to file
+        fname = 'output/{}.pts'.format(fun.decl.name)
+        pts = {k: list(v) for k, v in pts.items()}
+        with open(fname, 'w') as fo:
+            fo.write(json.dumps(pts))
 
 
 ps = AliasAnalyzer(name='aliases')

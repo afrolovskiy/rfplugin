@@ -24,6 +24,9 @@ class Type(object):
     def __repr__(self):
         return 'Type(name={!r})'.format(self.name)
 
+    def __eq__(self, other):
+        return self.__dict__() == other.__dict__()
+
 
 class PointerType(Type):
     def __init__(self, type):
@@ -38,6 +41,9 @@ class PointerType(Type):
 
     def __repr__(self):
         return 'PointerType(type={!r})'.format(self.type)
+
+    def __eq__(self, other):
+        return self.__dict__() == other.__dict__()
 
 
 class Variable(object):
@@ -56,6 +62,9 @@ class Variable(object):
     def __repr__(self):
         return 'Variable(name={!r}, type={!r}, value={!r})'.format(self.name, self.type, self.value)
 
+    def __eq__(self, other):
+        return self.__dict__() == other.__dict__()
+
 
 class Address(object):
     def __init__(self, variable):
@@ -68,6 +77,9 @@ class Address(object):
 
     def __repr__(self):
         return 'Address(variable={!r})'.format(self.variable)
+
+    def __eq__(self, other):
+        return self.__dict__() == other.__dict__()
 
 
 class Analyzer(gcc.GimplePass):

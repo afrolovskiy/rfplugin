@@ -12,6 +12,64 @@ def count_repetitions(array, value):
     return count
 
 
+class Type(object):
+    def __init__(self, name):
+        self.name = name
+
+    def __dict__(self):
+        return {
+            'name': self.name,
+        }
+
+    def __repr__(self):
+        return 'Type(name={!r})'.format(self.name)
+
+
+class PointerType(Type):
+    def __init__(self, type):
+        super(PointerType, self).__init__(name='pointer')
+        self.type = type
+
+    def __dict__(self):
+        return {
+            'name': self.name,
+            'type': self.type.__dict__(),
+        }
+
+    def __repr__(self):
+        return 'PointerType(type={!r})'.format(self.type)
+
+
+class Variable(object):
+    def __init__(self, name, type, value=None):
+        self.name = name
+        self.type = type
+        self.value = value
+
+    def __dict__(self):
+        return {
+            'name': self.name,
+            'type': self.type.__dict__(),
+            'value': self.value.__dict__() if hasattr(self.value, 'to_dict') else self.value,
+        }
+
+    def __repr__(self):
+        return 'Variable(name={!r}, type={!r}, value={!r})'.format(self.name, self.type, self.value)
+
+
+class Address(object):
+    def __init__(self, variable):
+        self.variable = variable
+
+    def __dict__(self):
+        return {
+            'address_of': self.variable.__dict__(),
+        }
+
+    def __repr__(self):
+        return 'Address(variable={!r})'.format(self.variable)
+
+
 class Analyzer(gcc.GimplePass):
     K = 3
 
@@ -21,7 +79,7 @@ class Analyzer(gcc.GimplePass):
 
     def execute(self, fun):
         print '==============={}==============='.format(fun.decl.name)
-        #self.print_info(fun)  # for debug
+        self.print_info(fun)  # for debug
 
         pathes = self.build_pathes(fun)
         #self.print_pathes(pathes)  # for debug
@@ -76,30 +134,9 @@ class Analyzer(gcc.GimplePass):
         accesses = []
         lockset = [set(), set()]
 
-        aliases = {}
-        shared = []
+        variables, shared = self.init_variables(fun)
+        import ipdb; ipdb.set_trace()
         
-        def init_variable(decl):
-            name, vtype = str(decl), decl.type
-            while isinstance(vtype, gcc.PointerType):
-                # analyze each function independant from others so
-                # add faked locations in order to emulate shared pointers
-                # behaviour
-                faked = 'ptr_{}'.format(name)
-                aliases[name] = faked
-                name, vtype = faked, vtype.type
-
-        for variable in gcc.get_variables():
-            init_variable(variable.decl)
-            shared.append(str(variable.decl))
-
-        for decl in fun.local_decls:
-            init_variable(decl)
-
-        for decl in fun.decl.arguments:
-            init_variable(decl)
-            shared.append(str(decl))
-
         for block in path:
             for stat in block.gimple:
                 #print '+++++++++++++++++++++++++'
@@ -113,10 +150,40 @@ class Analyzer(gcc.GimplePass):
                     lhs, rhs = stat.lhs, stat.rhs[0]
                     self.analyze_aliases(lhs, rhs, aliases)
 
+                if isinstance(stat, gcc.GimpleCall):
+                    self.analyze_call(stat, shared, aliases, lockset, accesses)
+
                 #print 'pointers: {}'.format(aliases)
+                #print 'lockset: {}'.format(lockset)
                 #print 'accesses: {}'.format(accesses)
 
         return lockset, accesses
+
+    def init_variables(self, fun):
+        def init_variable(name, vtype):
+            if isinstance(vtype, gcc.PointerType):
+                faked = '{}_location'.format(name)
+                variable = init_variable(faked, vtype.type)
+                return Variable(name=name, type=PointerType(type=variable.type), value=Address(variable))
+            return Variable(name=name, type=Type(name=str(vtype)))
+
+        variables, shared = {}, []
+
+        # initialize global variables
+        for var in gcc.get_variables():
+            variables[str(var.decl)] = init_variable(str(var.decl), var.decl.type)
+            shared.append(str(var.decl))
+
+        # initialize formal parameters
+        for decl in fun.decl.arguments:
+            variables[str(decl)] = init_variable(str(decl), decl.type)
+            shared.append(str(decl))
+
+        # initialize local variables
+        for decl in fun.local_decls:
+            variables[str(decl)] = init_variable(str(decl), decl.type)
+
+        return variables, shared
 
     def analyze_statement(self, stat, shared, aliases, lockset, accesses):
         if isinstance(stat, gcc.GimpleAssign):
@@ -132,6 +199,7 @@ class Analyzer(gcc.GimplePass):
                 # analyze lhs
                 self.analyze_value(stat.lhs, shared, aliases, lockset, accesses, 'write')
 
+            # analyze function arguments
             for rhs in stat.args:
                 self.analyze_value(rhs, shared, aliases, lockset, accesses, 'read')
 
@@ -243,6 +311,25 @@ class Analyzer(gcc.GimplePass):
                 raise Exception("Unexpected rhs: {}".format(repr(rhs)))
         else:
             raise Exception("Unexpected lhs: {}".format(repr(lhs)))
+
+    def analyze_call(self, stat, shared, aliases, lockset, accesses):
+        import ipdb; ipdb.set_trace()
+        if stat.fndecl.name == 'pthread_mutex_lock':
+            # analyze mutex lock
+            arg = stat.args[0]
+            if isinstance(arg, gcc.AddrExpr) and str(arg.operand) in shared:
+                lockset[0].add(str(arg.operand))
+                if str(arg.operand) in lockset[1]:
+                    lockset[1].remove(str(arg.operand))
+            else:
+                
+                pass
+        elif stat.fndecl.name == 'pthread_mutex_unlock':
+            # analyze mutex unlock
+            pass
+        else:
+            # other functions analysis
+            pass
 
 
 ps = Analyzer(name='analyze')

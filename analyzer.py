@@ -20,13 +20,25 @@ class Analyzer(gcc.GimplePass):
         self.lock_summaries = {}
 
     def execute(self, fun):
+        print '==============={}==============='.format(fun.decl.name)
         #self.print_info(fun)  # for debug
 
         pathes = self.build_pathes(fun)
         #self.print_pathes(pathes)  # for debug
 
+        lock_summary = None
+        access_summary = []
+
         for path in pathes:
-            lock_summary, accesses = self.analyze_path(fun, path)
+            lockset, accesses = self.analyze_path(fun, path)
+            if lock_summary is None:
+                lock_summary = lockset
+            lock_summary[0] = lock_summary[0].intersection(lockset[0])
+            lock_summary[1] = lock_summary[1].union(lockset[1])
+            access_summary.extend(accesses)
+
+        print 'lock_summary:', lock_summary
+        print 'access_summary:', access_summary
 
     def build_pathes(self, fun):
         def walk(block, path):
@@ -62,7 +74,7 @@ class Analyzer(gcc.GimplePass):
         print 'analyzed path: [{}]'.format(','.join([str(b.index) for b in path]))
 
         accesses = []
-        lockset = tuple([set(), set()])
+        lockset = [set(), set()]
 
         aliases = {}
         shared = []
@@ -90,8 +102,8 @@ class Analyzer(gcc.GimplePass):
 
         for block in path:
             for stat in block.gimple:
-                print '+++++++++++++++++++++++++'
-                print 'Instruction: {}'.format(str(stat))
+                #print '+++++++++++++++++++++++++'
+                #print 'Instruction: {}'.format(str(stat))
 
                 # add record to table accesses if needed
                 self.analyze_statement(stat, shared, aliases, lockset, accesses)
@@ -101,10 +113,10 @@ class Analyzer(gcc.GimplePass):
                     lhs, rhs = stat.lhs, stat.rhs[0]
                     self.analyze_aliases(lhs, rhs, aliases)
 
-                print 'pointers: {}'.format(aliases)
-                print 'accesses: {}'.format(accesses)
+                #print 'pointers: {}'.format(aliases)
+                #print 'accesses: {}'.format(accesses)
 
-        return None, None  # stub
+        return lockset, accesses
 
     def analyze_statement(self, stat, shared, aliases, lockset, accesses):
         if isinstance(stat, gcc.GimpleAssign):

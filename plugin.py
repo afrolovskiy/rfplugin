@@ -1,4 +1,5 @@
 import random
+import copy
 
 import gcc
 

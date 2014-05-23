@@ -292,6 +292,14 @@ class RaceFinder(gcc.IpaPass):
         print 'accesses:'
         pprint(access_summary.to_dict())
 
+        self.summaries[fun.decl.name] = {
+            'lockset': lockset_summary,
+            'accesses': access_summary,
+            'formals': [variables[str(arg)] for arg in fun.decl.arguments],
+        }
+
+        import ipdb; ipdb.set_trace()
+
     def print_info(self, fun):
         print 'Function: {}'.format(fun.decl.name)
         for bb in fun.cfg.basic_blocks:
@@ -517,7 +525,8 @@ class RaceFinder(gcc.IpaPass):
             raise Exception("Unexpected lhs: {}".format(repr(lhs)))
 
     def analyze_call(self, stat, variables, lockset):
-        if str(stat.fndecl) == 'pthread_mutex_lock':
+        fname = str(stat.fndecl)
+        if fname == 'pthread_mutex_lock':
             arg = stat.args[0]
             if isinstance(arg, gcc.AddrExpr):
                 name = str(arg.operand.var) if isinstance(arg.operand, gcc.SsaName) else str(arg.operand)
@@ -530,7 +539,7 @@ class RaceFinder(gcc.IpaPass):
             else:
                 raise Exception('Unexpexted argument of pthread_mutex_lock')
         
-        elif str(stat.fndecl) == 'pthread_mutex_unlock':
+        elif fname == 'pthread_mutex_unlock':
             arg = stat.args[0]
             if isinstance(arg, gcc.AddrExpr):
                 name = str(arg.operand.var) if isinstance(arg.operand, gcc.SsaName) else str(arg.operand)
@@ -541,7 +550,13 @@ class RaceFinder(gcc.IpaPass):
                 location = variables[name]
                 lockset.release(location.value)
             else:
-                raise Exception('Unexpexted argument of pthread_mutex_unlock')        
+                raise Exception('Unexpexted argument of pthread_mutex_unlock')
+
+        else:
+            summary = self.summaries.get(fname)
+            if not summary:
+                import ipdb; ipdb.set_trace()
+                pass
 
 
 ps = RaceFinder(name='race-finder')

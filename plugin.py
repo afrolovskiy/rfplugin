@@ -330,7 +330,9 @@ class RaceFinder(gcc.IpaPass):
             raise Exception('Unhandled statement: {}'.format(repr(stat)))
 
     def analyze_value(self, value, variables, lockset, access_table, kind):
-        if isinstance(value, (gcc.VarDecl, gcc.ParmDecl)):
+        if isinstance(value, gcc.SsaName):
+            self.analyze_value(value.var, variables, lockset, access_table, kind)
+        elif isinstance(value, (gcc.VarDecl, gcc.ParmDecl)):
             # p
             location = variables[str(value)]
             if location.is_shared():

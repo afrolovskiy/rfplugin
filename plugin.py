@@ -1,3 +1,4 @@
+from pprint import pprint
 import random
 import copy
 
@@ -279,11 +280,13 @@ class RaceFinder(gcc.IpaPass):
 
         print 'variables:'
         for k, v in variables.items():
-            print v.to_dict()
+            pprint(v.to_dict())
         print '----------'
-        print 'lockset: {}'.format(lockset_summary.to_dict())
+        print 'lockset'
+        pprint(lockset_summary.to_dict())
         print '---------'
-        print 'accesses: {}'.format(access_summary.to_dict())
+        print 'accesses:'
+        pprint(access_summary.to_dict())
 
     def print_info(self, fun):
         print 'Function: {}'.format(fun.decl.name)

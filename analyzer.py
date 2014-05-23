@@ -1,3 +1,4 @@
+import hashlib
 import random
 import copy
 
@@ -60,7 +61,9 @@ class Variable(object):
         }
 
     def __repr__(self):
-        return 'Variable(name={!r}, type={!r}, value={!r})'.format(self.name, self.type, self.value)
+        return 'Variable(name={!r}, type={!r}, value={!r}, shared={!r})'.format(
+            self.name, self.type, self.value, self.shared
+        )
 
     def __eq__(self, other):
         return self.__dict__() == other.__dict__()
@@ -82,12 +85,39 @@ class Address(object):
         return self.__dict__() == other.__dict__()
 
 
+class RelativeLockset(object):
+    def __init__(self):
+        self.acquired = set()
+        self.released = set()
+
+    def __dict__(self):
+        return {
+            'acquired': [l.__dict__() for l in self.acquired],
+            'released': [l.__dict__() for l in self.released],
+        }
+
+    def __repr__(self):
+        return 'RelativeLockset(acquired={!r}, released={!r})'.format(
+            ','.join([repr(l) for l in self.acquired]),
+            ','.join([repr(l) for l in self.released]),
+        )
+
+
+class Access(object):
+    READ = 'read'
+    WRITE = 'write'
+
+    def __init__(self, value, lockset, kind):
+        self.value = copy.deepcopy(value)
+        self.lockset = copy.deepcopy(lockset)
+        self.kind = kind
+
+
 class Analyzer(gcc.GimplePass):
     K = 3
 
     def __init__(self, *args, **kwargs):
         super(Analyzer, self).__init__(*args, **kwargs)
-        self.lock_summaries = {}
 
     def execute(self, fun):
         print '==============={}==============='.format(fun.decl.name)
@@ -151,23 +181,22 @@ class Analyzer(gcc.GimplePass):
         
         for block in path:
             for stat in block.gimple:
-                #print '+++++++++++++++++++++++++'
-                #print 'Instruction: {}'.format(str(stat))
+                print '+++++++++++++++++++++++++'
+                print 'Instruction: {}'.format(str(stat))
 
                 # add record to table accesses if needed
-                self.analyze_statement(stat, shared, aliases, lockset, accesses)
+                self.analyze_accesses(stat, variables, shared, lockset, accesses)
 
                 # analyze pointers
-                if isinstance(stat, gcc.GimpleAssign) and len(stat.rhs) == 1:
-                    lhs, rhs = stat.lhs, stat.rhs[0]
-                    self.analyze_aliases(lhs, rhs, aliases)
+                #if isinstance(stat, gcc.GimpleAssign) and len(stat.rhs) == 1:
+                #    lhs, rhs = stat.lhs, stat.rhs[0]
+                #    self.analyze_aliases(lhs, rhs, aliases)
 
-                if isinstance(stat, gcc.GimpleCall):
-                    self.analyze_call(stat, shared, aliases, lockset, accesses)
+                #if isinstance(stat, gcc.GimpleCall):
+                #    self.analyze_call(stat, shared, aliases, lockset, accesses)
 
-                #print 'pointers: {}'.format(aliases)
-                #print 'lockset: {}'.format(lockset)
-                #print 'accesses: {}'.format(accesses)
+                print 'lockset: {}'.format(lockset)
+                print 'accesses: {}'.format(accesses)
 
         return lockset, accesses
 
@@ -197,64 +226,56 @@ class Analyzer(gcc.GimplePass):
 
         return variables, shared
 
-    def analyze_statement(self, stat, shared, aliases, lockset, accesses):
+    def analyze_accesses(self, stat, variables, shared, lockset, accesses):
         if isinstance(stat, gcc.GimpleAssign):
             # analyze left side of assignment
-            self.analyze_value(stat.lhs, shared, aliases, lockset, accesses, 'write')
+            self.analyze_value(stat.lhs, variables, shared, lockset, accesses, 'write')
         
             # analyze right side of assign
             for rhs in stat.rhs:
-                self.analyze_value(rhs, shared, aliases, lockset, accesses, 'read')
+                self.analyze_value(rhs, variables, shared, lockset, accesses, 'read')
 
         elif isinstance(stat, gcc.GimpleCall):
             if stat.lhs:
                 # analyze lhs
-                self.analyze_value(stat.lhs, shared, aliases, lockset, accesses, 'write')
+                self.analyze_value(stat.lhs, variables, shared, lockset, accesses, 'write')
 
             # analyze function arguments
             for rhs in stat.args:
-                self.analyze_value(rhs, shared, aliases, lockset, accesses, 'read')
+                self.analyze_value(rhs, variables, shared, lockset, accesses, 'read')
 
         elif isinstance(stat, gcc.GimpleReturn):
             if stat.retval:
-                self.analyze_value(stat.retval, shared, aliases, lockset, accesses, 'read')
+                # analuze returned value
+                self.analyze_value(stat.retval, variables, shared, lockset, accesses, 'read')
 
         elif isinstance(stat, gcc.GimpleLabel):
             # nothing to do
             pass
 
-        elif isinstance(stat, gcc.GimpleCond):
-            if stat.exprcode in (gcc.EqExpr, gcc.NeExpr, gcc.LeExpr, gcc.LtExpr, gcc.GeExpr, gcc.GtExpr,):
-                self.analyze_value(stat.lhs, shared, aliases, lockset, accesses, 'read')
-                self.analyze_value(stat.rhs, shared, aliases, lockset, accesses, 'read')
-            else:
-                raise Exception("Unhandled instruction: {}".format(repr(stat)))
+        elif (isinstance(stat, gcc.GimpleCond) and stat.exprcode in
+                (gcc.EqExpr, gcc.NeExpr, gcc.LeExpr, gcc.LtExpr, gcc.GeExpr, gcc.GtExpr,)):
+            # analyze left and right side of compare expression
+            self.analyze_value(stat.lhs, variables, shared, lockset, accesses, 'read')
+            self.analyze_value(stat.rhs, variables, shared, lockset, accesses, 'read')
         else:
-            raise Exception("Unhandled instruction: {}".format(repr(stat)))
+            raise Exception('Unhandled statement: {}'.format(repr(stat)))
 
-    def analyze_value(self, value, shared, aliases, lockset, accesses, kind):
+    def analyze_value(self, value, variables, shared, lockset, accesses, kind):
         if isinstance(value, (gcc.VarDecl, gcc.ParmDecl)):
-            # p = ...
+            # p
             if str(value) in shared:
-                #  => (p, L, write)
-                accesses.append((str(value), copy.deepcopy(lockset), kind))
+                accesses.append((variables[str(value)], copy.deepcopy(lockset), kind))
         elif isinstance(value, gcc.MemRef):
-            # *p = ...
-            if str(value.operand) in shared:
-                # => (p, L, write)
-                accesses.append((str(value.operand), copy.deepcopy(lockset), kind))
-            else:
-                # find shared variable which can points to same location with "p"
-                points_to = aliases.get(str(value.operand))
-                if points_to:
-                    for k, v in aliases.items():
-                        if v == points_to and k in shared:
-                            accesses.append(('*{}'.format(k), copy.deepcopy(lockset), kind))
+            # *p
+            value = variables[str(value.operand)].value
+            if value and isinstance(value, Address) and value.variable.name in shared:
+                accesses.append((accessed, copy.deepcopy(lockset), kind))
         elif isinstance(value, (gcc.IntegerCst, gcc.AddrExpr, gcc.Constructor)):
             # nothing to do
             pass
         else:
-            raise Exception("Unexpected value: {}".format(repr(value)))
+            raise Exception('Unexpected value: {}'.format(repr(value)))
 
     def analyze_aliases(self, lhs, rhs, aliases):
         if isinstance(lhs, gcc.MemRef):  # *p

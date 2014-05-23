@@ -52,16 +52,18 @@ class GuardedAccess(object):
     READ = 'read'
     WRITE = 'write'
 
-    def __init__(self, access, lockset, kind):
+    def __init__(self, access, lockset, kind, file=None, line=None):
         self.access = access
         self.lockset = lockset
         self.kind = kind
+        self.file = file
+        self.line = line
 
     def __hash__(self):
         access = hash(self.access)
         lockset = hash(self.lockset)
         kind = hash(self.kind)
-        return access + 2 * lockset + 3 * kind
+        return access + 2 * lockset + 3 * kind + hash(self.line) + hash(self.file)
 
     def __eq__(self, other):
         return hash(self) == hash(other)
@@ -71,6 +73,8 @@ class GuardedAccess(object):
             'access': self.access.to_dict(),
             'lockset': self.lockset.to_dict(),
             'kind': self.kind,
+            'file': self.file,
+            'line': self.line,
         }
 
 
@@ -364,25 +368,25 @@ class RaceFinder(gcc.IpaPass):
     def analyze_access(self, stat, variables, lockset, access_table):
         if isinstance(stat, gcc.GimpleAssign):
             # analyze left side of assignment
-            self.analyze_value(stat.lhs, variables, lockset, access_table, GuardedAccess.WRITE)
+            self.analyze_value(stat.lhs, stat, variables, lockset, access_table, GuardedAccess.WRITE)
 
             # analyze right side of assign
             for rhs in stat.rhs:
-                self.analyze_value(rhs, variables, lockset, access_table, GuardedAccess.READ)
+                self.analyze_value(rhs, stat, variables, lockset, access_table, GuardedAccess.READ)
 
         elif isinstance(stat, gcc.GimpleCall):
             if stat.lhs:
                 # analyze lhs
-                self.analyze_value(stat.lhs, variables, lockset, access_table, GuardedAccess.WRITE)
+                self.analyze_value(stat.lhs, stat, variables, lockset, access_table, GuardedAccess.WRITE)
 
             # analyze function arguments
             for rhs in stat.args:
-                self.analyze_value(rhs, variables, lockset, access_table, GuardedAccess.READ)
+                self.analyze_value(rhs, stat, variables, lockset, access_table, GuardedAccess.READ)
 
         elif isinstance(stat, gcc.GimpleReturn):
             if stat.retval:
                 # analuze returned value
-                self.analyze_value(stat.retval, variables, lockset, access_table, GuardedAccess.READ)
+                self.analyze_value(stat.retval, stat, variables, lockset, access_table, GuardedAccess.READ)
 
         elif isinstance(stat, gcc.GimpleLabel):
             # nothing to do
@@ -391,21 +395,21 @@ class RaceFinder(gcc.IpaPass):
         elif (isinstance(stat, gcc.GimpleCond) and stat.exprcode in
                 (gcc.EqExpr, gcc.NeExpr, gcc.LeExpr, gcc.LtExpr, gcc.GeExpr, gcc.GtExpr,)):
             # analyze left and right side of compare expression
-            self.analyze_value(stat.lhs, variables, lockset, access_table, GuardedAccess.READ)
-            self.analyze_value(stat.rhs, variables, lockset, access_table, GuardedAccess.READ)
+            self.analyze_value(stat.lhs, stat, variables, lockset, access_table, GuardedAccess.READ)
+            self.analyze_value(stat.rhs, stat, variables, lockset, access_table, GuardedAccess.READ)
         else:
             raise Exception('Unhandled statement: {}'.format(repr(stat)))
 
-    def analyze_value(self, value, variables, lockset, access_table, kind):
+    def analyze_value(self, value, stat, variables, lockset, access_table, kind):
         #print 'Accessed value: {} with {}'.format(str(value), repr(value))
         if isinstance(value, gcc.SsaName):
-            self.analyze_value(value.var, variables, lockset, access_table, kind)
+            self.analyze_value(value.var, stat, variables, lockset, access_table, kind)
         elif isinstance(value, (gcc.VarDecl, gcc.ParmDecl)):
             # p
             location = variables[str(value)]
             if location.is_shared():
                 access_table.add(GuardedAccess(
-                    copy.deepcopy(location), copy.deepcopy(lockset), kind))
+                    copy.deepcopy(location), copy.deepcopy(lockset), kind, stat.file, stat.line))
         elif isinstance(value, gcc.MemRef):
             # *p
             # harcoded
@@ -414,12 +418,12 @@ class RaceFinder(gcc.IpaPass):
             location = variables[name]
             if location.is_shared():
                 access_table.add(GuardedAccess(
-                    copy.deepcopy(location), copy.deepcopy(lockset), GuardedAccess.READ))
+                    copy.deepcopy(location), copy.deepcopy(lockset), GuardedAccess.READ, stat.file, stat.line))
 
             accessed = location.value.location
             if accessed.is_shared():
                 access_table.add(GuardedAccess(
-                    copy.deepcopy(accessed), copy.deepcopy(lockset), kind))
+                    copy.deepcopy(accessed), copy.deepcopy(lockset), kind, stat.file, stat.line))
         elif value is None or isinstance(value, (gcc.IntegerCst, gcc.AddrExpr, gcc.Constructor)):
             # do nothing
             pass

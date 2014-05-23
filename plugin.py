@@ -355,7 +355,10 @@ class RaceFinder(gcc.IpaPass):
                     copy.deepcopy(location), copy.deepcopy(lockset), kind))
         elif isinstance(value, gcc.MemRef):
             # *p
-            location = variables[str(value.operand)]
+            # harcoded
+            name = str(value.operand.var) if isinstance(value.operand, gcc.SsaName) else str(value.operand)
+
+            location = variables[name]
             if location.is_shared():
                 access_table.add(GuardedAccess(
                     copy.deepcopy(location), copy.deepcopy(lockset), GuardedAccess.READ))
@@ -365,7 +368,7 @@ class RaceFinder(gcc.IpaPass):
                 access_table.add(GuardedAccess(
                     copy.deepcopy(accessed), copy.deepcopy(lockset), kind))
         elif value is None or isinstance(value, (gcc.IntegerCst, gcc.AddrExpr, gcc.Constructor)):
-            # nothing to do
+            # do nothing
             pass
         else:
             raise Exception('Unexpected value: {}'.format(repr(value)))
@@ -373,6 +376,5 @@ class RaceFinder(gcc.IpaPass):
 
 
 ps = RaceFinder(name='race-finder')
-
 ps.register_after('whole-program')
 

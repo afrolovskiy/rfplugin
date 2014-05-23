@@ -227,7 +227,7 @@ class RaceFinder(gcc.IpaPass):
         pathes = self.build_pathes(fun)
         variables = self.init_variables(fun)
         for path in pathes:
-            self.analyze_path(fun, path, copy.deepcopy(variables)
+            self.analyze_path(fun, path, copy.deepcopy(variables))
 
     def build_pathes(self, fun):
         def walk(block, path):

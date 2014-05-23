@@ -268,7 +268,7 @@ class RaceFinder(gcc.IpaPass):
 
     def init_variables(self, fun):
         variables = copy.deepcopy(self.global_variables)
-        variables.update(self.init_formal_parameters(fun))
+        variables.update(self.init_formal_variables(fun))
         variables.update(self.init_local_variables(fun))
         return variables
 

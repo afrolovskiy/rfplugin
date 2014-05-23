@@ -3,6 +3,14 @@ import random
 import gcc
 
 
+def count_repetitions(array, value):
+    count = 0
+    for element in array:
+        if element == value:
+            count = count + 1
+    return count
+
+
 class RelativeLockset(object):
     def __init__(self, acquired=None, released=None):
         self.acquired = acquired or set()
@@ -223,7 +231,7 @@ class RaceFinder(gcc.IpaPass):
         return None
 
     def analyze_node(self, node):
-        fun = node.function
+        fun = node.decl.function
         pathes = self.build_pathes(fun)
         variables = self.init_variables(fun)
         for path in pathes:

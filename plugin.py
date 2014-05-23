@@ -571,8 +571,8 @@ class RaceFinder(gcc.IpaPass):
         summary = copy.deepcopy(summary)
 
         # rebind guarded access table
-        for access in summary['accesses'].accesses:
-            if access.is_formal():
+        for ga in summary['accesses'].accesses:
+            if gs.access.is_formal():
                 # need rebind
                 import ipdb; ipdb.set_trace()
 

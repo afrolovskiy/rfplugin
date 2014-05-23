@@ -274,7 +274,7 @@ class RaceFinder(gcc.IpaPass):
         local_variables = {}
         for decl in fun.local_decls:
             name, type = str(decl), decl.type
-            local_variables[name= self.init_variable(
+            local_variables[name] = self.init_variable(
                 name, type, visibility=Location.VISIBILITY_LOCAL)
         return local_variables
 

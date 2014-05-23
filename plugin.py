@@ -160,6 +160,9 @@ class Location(object):
     def is_shared(self):
         return self.visibility in (self.VISIBILITY_GLOBAL, self.VISIBILITY_FORMAL)
 
+    def is_formal(self):
+        return self.visibility == self.VISIBILITY_FORMAL
+
     def is_fake(self):
         return self.status == self.STATUS_FAKE
 
@@ -250,7 +253,7 @@ class RaceFinder(gcc.IpaPass):
 
     def get_node_by_name(self, name):
         # Returns node if exists, otherwise - None
-        for node in gcc.get_callgraph_node():
+        for node in gcc.get_callgraph_nodes():
             if node.decl.name == name:
                 return node
         return None
@@ -298,7 +301,7 @@ class RaceFinder(gcc.IpaPass):
             'formals': [variables[str(arg)] for arg in fun.decl.arguments],
         }
 
-        import ipdb; ipdb.set_trace()
+        #import ipdb; ipdb.set_trace()
 
     def print_info(self, fun):
         print 'Function: {}'.format(fun.decl.name)
@@ -554,9 +557,29 @@ class RaceFinder(gcc.IpaPass):
 
         else:
             summary = self.summaries.get(fname)
-            if not summary:
+            if summary is None:
+                node = self.get_node_by_name(fname)
+                if node is None:
+                    # pass call of external function
+                    return
+                self.analyze_node(node)
+                summary = self.summaries[fname]
+            summary = self.rebindSummary(summary, stat)
+            import ipdb; ipdb.set_trace()
+
+    def rebindSummary(self, summary, stat):
+        summary = copy.deepcopy(summary)
+
+        # rebind guarded access table
+        for access in summary['accesses'].accesses:
+            if access.is_formal():
+                # need rebind
                 import ipdb; ipdb.set_trace()
-                pass
+
+        # rebind relative lockset
+        # TODO
+
+        return summary 
 
 
 ps = RaceFinder(name='race-finder')

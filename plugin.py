@@ -530,7 +530,7 @@ class RaceFinder(gcc.IpaPass):
         else:
             raise Exception("Unexpected lhs: {}".format(repr(lhs)))
 
-    def analyze_call(self, stat, variables, lockset):
+    def analyze_call(self, stat, variables, lockset, access_table):
         fname = str(stat.fndecl)
         if fname == 'pthread_mutex_lock':
             arg = stat.args[0]
@@ -567,9 +567,9 @@ class RaceFinder(gcc.IpaPass):
                     return
                 self.analyze_node(node)
                 summary = self.summaries[fname]
-            import ipdb; ipdb.set_trace()
             summary = self.rebindSummary(summary, stat, variables)
-            import ipdb; ipdb.set_trace()
+            # TODO: update current lockset and access table
+            raise
 
     def rebindSummary(self, summary, stat, variables):
         summary = copy.deepcopy(summary)

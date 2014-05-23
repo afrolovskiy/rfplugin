@@ -405,7 +405,7 @@ class RaceFinder(gcc.IpaPass):
                 rname = str(rhs.operand.var) if isinstance(rhs.operand, gcc.SsaName) else str(rhs.operand)
                 b = variables[rname].value.location
                 a.value = b.value
-            elif isinstance(rhs, (gcc.VarDecl, gcc.ParmDecl)):
+            elif isinstance(rhs, (gcc.VarDecl, gcc.ParmDecl, gcc.SsaName)):
                 # *p = q
                 # q ---> b
                 #        ^

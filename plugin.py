@@ -42,6 +42,10 @@ class RelativeLockset(object):
         else:
             self.released.add(lock)
 
+    def update(self, lockset):
+        self.acquired = self.acquired.intersection(lockset.acquired)
+        self.released = self.released.union(lockset.released)
+
 
 class GuardedAccess(object):
     READ = 'read'
@@ -79,6 +83,9 @@ class GuardedAccessTable(object):
     def add(self, access):
         if access not in self.accesses:
             self.accesses.add(access)
+
+    def update(self, table):
+        self.accesses.update(table.accesses)
 
 
 class Type(object):
@@ -249,8 +256,8 @@ class RaceFinder(gcc.IpaPass):
         fun = node.decl.function
         print '==========================================='
         print 'Analyzed: {}'.format(node.decl.name)
-        self.print_info(fun)
-        print '------------------------------------------'
+        #self.print_info(fun)
+        #print '------------------------------------------'
 
         variables = self.init_variables(fun)
 
@@ -263,12 +270,18 @@ class RaceFinder(gcc.IpaPass):
             if lockset_summary is None:
                 lockset_summary = lockset
             else:
-                pass
+                lockset_summary.update(lockset)
 
             if access_table_summary is None:
                 access_table_summary = access_table
             else:
-                pass                
+                access_summary.update(access_table)
+
+         print 'variables: {}'.format(variables.to_dict())
+         print '----------'
+         print 'lockset: {}'.format(lockset_summary)
+         print '---------'
+         print 'accesses: {}'.format(access_summary)
 
     def print_info(self, fun):
         print 'Function: {}'.format(fun.decl.name)
@@ -302,12 +315,12 @@ class RaceFinder(gcc.IpaPass):
 
         for block in path:
             for stat in block.gimple:
-                print 'Instruction: {}'.format(str(stat))
-                print 'Type: {}'.format(repr(stat))
+                #print 'Instruction: {}'.format(str(stat))
+                #print 'Type: {}'.format(repr(stat))
                 self.analyze_statement(stat, variables, lockset, access_table)
-                print access_table.to_dict()
-                print lockset.to_dict()
-                print '+++++++++++++++++++++++++++++++'
+                #print access_table.to_dict()
+                #print lockset.to_dict()
+                #print '+++++++++++++++++++++++++++++++'
 
         return lockset, access_table
 

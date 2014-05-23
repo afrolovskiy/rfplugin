@@ -598,7 +598,6 @@ class RaceFinder(gcc.IpaPass):
 
         return new_location
 
-
     def find_parent(self, location, formals):
         for idx in range(len(formals)):
             formal, level = formals[idx], 0
@@ -617,19 +616,29 @@ class RaceFinder(gcc.IpaPass):
         return None, None
 
     def rebind_lockset(self, lockset, args, formals, variables):
-        new_lockset = RelativeLockset()
+        return RelativeLockset(
+            self.rebind_set(lockset.acquired, args, formals, variables),
+            self.rebind_set(lockset.released, args, formals, variables
+        )
 
-        for acquired in lockset.acquired:
-            if acquired.is_formal():
-                acquired = self.find_rebinding_location(acquired, args, formals, variables)
-            new_lockset.acquired.add(copy.deepcopy(acquired))
+    def rebind_set(self, old_set, args, formals, variables):
+        new_set = set()
+        for value in old_set:
+            need_address = False
 
-        for released in lockset.released:
-            if released.is_formal():
-                released = self.find_rebinding_location(released, stat.args, summary['formals'], variables)
-            new_lockset.released.add(copy.deepcopy(released))
+            if isinstance(value, Address):
+                value = value.location
 
-        return new_lockset
+            if value.is_formal():
+                value = self.find_rebinding_location(value, args, formals, variables)
+
+            if need_address:
+                value = Address(value)
+
+            new_set.add(copy.deepcopy(value))
+
+        return new_set
+
 
 
 ps = RaceFinder(name='race-finder')

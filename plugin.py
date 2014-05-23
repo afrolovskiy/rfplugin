@@ -160,6 +160,9 @@ class Location(object):
     def is_shared(self):
         return self.visibility in (self.VISIBILITY_GLOBAL, self.VISIBILITY_FORMAL)
 
+    def is_global(self):
+        return self.visibility == self.VISIBILITY_GLOBAL
+
     def is_formal(self):
         return self.visibility == self.VISIBILITY_FORMAL
 
@@ -418,7 +421,7 @@ class RaceFinder(gcc.IpaPass):
         elif isinstance(value, (gcc.VarDecl, gcc.ParmDecl)):
             # p
             location = variables[str(value)]
-            if location.is_shared():
+            if location.is_global():
                 access_table.add(GuardedAccess(
                     copy.deepcopy(location), copy.deepcopy(lockset), kind, stat.loc.file, stat.loc.line))
         elif isinstance(value, gcc.MemRef):

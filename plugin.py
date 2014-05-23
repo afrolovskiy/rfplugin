@@ -176,6 +176,7 @@ class Value(object):
 
 class RaceFinder(gcc.IpaPass):
     FAKE_RANGE = (0, 10000)
+    MAX_LEVEL = 4
 
     def __init__(self, *args, **kwargs):
         super(RaceFinder, self).__init__(*args, **kwargs)
@@ -239,7 +240,7 @@ class RaceFinder(gcc.IpaPass):
 
     def build_pathes(self, fun):
         def walk(block, path):
-            if count_repetitions(path, block) > RaceFinder.K:
+            if count_repetitions(path, block) > RaceFinder.MAX_LEVEL:
                 return []
 
             path.append(block)

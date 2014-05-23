@@ -33,8 +33,8 @@ class RelativeLockset(object):
 
 
 class GuardedAccess(object):
-    KIND_READ = 'read'
-    KIND_WRITE = 'write'
+    READ = 'read'
+    WRITE = 'write'
 
     def __init__(self, access, lockset, kind):
         self.access = access

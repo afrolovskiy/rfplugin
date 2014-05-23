@@ -233,9 +233,12 @@ class RaceFinder(gcc.IpaPass):
         return None
 
     def analyze_node(self, node):
+        import ipdb; ipdb.set_trace()
         fun = node.decl.function
+        print '==========================================='
         print 'Analyzed: {}'.format(node.decl.name)
         self.print_info(fun)
+        print '------------------------------------------'
 
         pathes = self.build_pathes(fun)
         variables = self.init_variables(fun)
@@ -277,6 +280,7 @@ class RaceFinder(gcc.IpaPass):
                 print 'Type: {}'.format(repr(stat))
                 self.analyze_statement(stat, variables, lockset, access_table)
                 print access_table.to_dict()
+                print '+++++++++++++++++++++++++++++++'
 
     def init_variables(self, fun):
         variables = copy.deepcopy(self.global_variables)
@@ -364,11 +368,11 @@ class RaceFinder(gcc.IpaPass):
             # nothing to do
             pass
         else:
-            import ipdb; ipdb.set_trace()
             raise Exception('Unexpected value: {}'.format(repr(value)))
 
 
 
 ps = RaceFinder(name='race-finder')
+
 ps.register_after('whole-program')
 

@@ -251,7 +251,7 @@ class RaceFinder(gcc.IpaPass):
         return None
 
     def analyze_node(self, node):
-        import ipdb; ipdb.set_trace()
+        #import ipdb; ipdb.set_trace()
 
         fun = node.decl.function
         print '==========================================='

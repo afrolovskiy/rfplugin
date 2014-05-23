@@ -235,11 +235,20 @@ class RaceFinder(gcc.IpaPass):
     def analyze_node(self, node):
         fun = node.decl.function
         print 'Analyzed: {}'.format(node.decl.name)
+        self.print_info(fun)
 
         pathes = self.build_pathes(fun)
         variables = self.init_variables(fun)
         for path in pathes:
             self.analyze_path(fun, path, copy.deepcopy(variables))
+
+    def print_info(self, fun):
+        print 'Function: {}'.format(fun.decl.name)
+        for bb in fun.cfg.basic_blocks:
+            print 'Basic block: {}'.format(str(bb))
+            for ss in bb.gimple:
+                print 'Instrruction: {}'.format(str(ss))
+                print 'Type: {}'.format(repr(ss))
 
     def build_pathes(self, fun):
         def walk(block, path):
@@ -351,7 +360,7 @@ class RaceFinder(gcc.IpaPass):
             if accessed.is_shared():
                 access_table.add(GuardedAccess(
                     copy.deepcopy(accessed), copy.deepcopy(lockset), kind))
-        elif isinstance(value, (gcc.IntegerCst, gcc.AddrExpr, gcc.Constructor)):
+        elif value is None or isinstance(value, (gcc.IntegerCst, gcc.AddrExpr, gcc.Constructor)):
             # nothing to do
             pass
         else:

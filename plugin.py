@@ -245,16 +245,30 @@ class RaceFinder(gcc.IpaPass):
 
     def analyze_node(self, node):
         import ipdb; ipdb.set_trace()
+
         fun = node.decl.function
         print '==========================================='
         print 'Analyzed: {}'.format(node.decl.name)
         self.print_info(fun)
         print '------------------------------------------'
 
-        pathes = self.build_pathes(fun)
         variables = self.init_variables(fun)
+
+        lockset_summary, access_table_summary = None, None
+
+        pathes = self.build_pathes(fun)
         for path in pathes:
-            self.analyze_path(fun, path, copy.deepcopy(variables))
+            lockset, access_table = self.analyze_path(fun, path, copy.deepcopy(variables))
+
+            if lockset_summary is None:
+                lockset_summary = lockset
+            else:
+                pass
+
+            if access_table_summary is None:
+                access_table_summary = access_table
+            else:
+                pass                
 
     def print_info(self, fun):
         print 'Function: {}'.format(fun.decl.name)
@@ -284,7 +298,8 @@ class RaceFinder(gcc.IpaPass):
 
     def analyze_path(self, fun, path, variables):
         lockset = RelativeLockset()
-        access_table = GuardedAccessTable() 
+        access_table = GuardedAccessTable()
+
         for block in path:
             for stat in block.gimple:
                 print 'Instruction: {}'.format(str(stat))
@@ -292,9 +307,9 @@ class RaceFinder(gcc.IpaPass):
                 self.analyze_statement(stat, variables, lockset, access_table)
                 print access_table.to_dict()
                 print lockset.to_dict()
-                if fun.decl.name == 'bar':
-                    import ipdb; ipdb.set_trace()
                 print '+++++++++++++++++++++++++++++++'
+
+        return lockset, access_table
 
     def init_variables(self, fun):
         variables = copy.deepcopy(self.global_variables)

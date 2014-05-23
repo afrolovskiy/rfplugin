@@ -261,7 +261,7 @@ class RaceFinder(gcc.IpaPass):
 
         variables = self.init_variables(fun)
 
-        lockset_summary, access_table_summary = None, None
+        lockset_summary, access_summary = None, None
 
         pathes = self.build_pathes(fun)
         for path in pathes:
@@ -272,12 +272,14 @@ class RaceFinder(gcc.IpaPass):
             else:
                 lockset_summary.update(lockset)
 
-            if access_table_summary is None:
-                access_table_summary = access_table
+            if access_summary is None:
+                access_summary = access_table
             else:
                 access_summary.update(access_table)
 
-        print 'variables: {}'.format(variables)
+        print 'variables:'
+        for k, v in variables.items():
+            print v.to_dict()
         print '----------'
         print 'lockset: {}'.format(lockset_summary.to_dict())
         print '---------'

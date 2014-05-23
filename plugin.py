@@ -234,6 +234,8 @@ class RaceFinder(gcc.IpaPass):
 
     def analyze_node(self, node):
         fun = node.decl.function
+        print 'Analyzed: {}'.format(node.decl.name)
+
         pathes = self.build_pathes(fun)
         variables = self.init_variables(fun)
         for path in pathes:

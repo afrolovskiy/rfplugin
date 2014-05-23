@@ -306,6 +306,11 @@ class RaceFinder(gcc.IpaPass):
 
     def analyze_statement(self, stat, variables, lockset, access_table):
         self.analyze_access(stat, variables, lockset, access_table)
+
+        if isinstance(stat, gcc.GimpleAssign) and len(stat.rhs) == 1:
+            lhs, rhs = stat.lhs, stat.rhs[0]
+            self.analyze_aliases(lhs, rhs, variables)
+
         # TODO
 
     def analyze_access(self, stat, variables, lockset, access_table):
@@ -373,6 +378,91 @@ class RaceFinder(gcc.IpaPass):
         else:
             raise Exception('Unexpected value: {}'.format(repr(value)))
 
+    def analyze_aliases(self, lhs, rhs, variables):
+        if isinstance(lhs, gcc.MemRef):  # *p
+            # hardcoded
+            lname = str(lhs.operand.var) if isinstance(lhs.operand, gcc.SsaName) else str(lhs.operand)
+
+            if isinstance(rhs, gcc.AddrExpr):
+                # *p = &q
+                #        q
+                #        ^   
+                #        |
+                # p ---> r
+                r = variables[lname].value.location
+                # hardcoded
+                rname = str(rhs.operand.var) if isinstance(rhs.operand, gcc.SsaName) else str(rhs.operand)
+                q = variables[rname]
+                r.value = Address(q)
+            elif isinstance(rhs, gcc.MemRef):
+                # *p = *q
+                # q ---> b ---> c
+                #               ^
+                #               |
+                #        p ---> a
+                a = variables[lname].value.location
+                # hardcoded
+                rname = str(rhs.operand.var) if isinstance(rhs.operand, gcc.SsaName) else str(rhs.operand)
+                b = variables[rname].value.location
+                a.value = b.value
+            elif isinstance(rhs, (gcc.VarDecl, gcc.ParmDecl)):
+                # *p = q
+                # q ---> b
+                #        ^
+                #        |
+                # p ---> r
+                r = variables[lname].value.location
+                # hardcoded
+                rname = str(rhs.var) if isinstance(rhs, gcc.SsaName) else str(rhs)
+                q = variables[rname]
+                r.value = q.value
+            elif isinstance(rhs, (gcc.IntegerCst, gcc.Constructor)):
+                # do nothing
+                pass
+            else:
+                raise Exception("Unexpected rhs: {}".format(repr(rhs)))
+
+        elif isinstance(lhs, (gcc.VarDecl, gcc.ParmDecl, gcc.SsaName)):  # p
+            # hardcoded
+            lname = str(lhs.var) if isinstance(lhs, gcc.SsaName) else str(lhs)
+            if isinstance(rhs, gcc.AddrExpr):
+                # p = &q
+                # p ---> q
+                # hardcoded
+                rname = str(rhs.operand.var) if isinstance(rhs.operand, gcc.SsaName) else str(rhs.operand)
+                p = variables[lname]
+                q = variables[rname]
+                p.value = Address(q)
+            elif isinstance(rhs, gcc.MemRef):
+                # p = *q
+                # q ---> a ---> b
+                #               ^
+                #               |
+                #               p
+                # hardcoded
+                rname = str(rhs.operand.var) if isinstance(rhs.operand, gcc.SsaName) else str(rhs.operand)
+                p = variables[lname]
+                q = variables[rname]
+                a = q.value.location
+                p.value = a.value
+            elif isinstance(rhs, (gcc.SsaName, gcc.VarDecl, gcc.ParmDecl)):
+                # p = q
+                # q ---> a
+                #        ^
+                #        |
+                #        p
+                # hardcoded
+                rname = str(rhs.var) if isinstance(rhs, gcc.SsaName) else str(rhs)
+                p = variables[lname]
+                q = variables[rname]
+                p.value = q.value
+            elif isinstance(rhs, (gcc.IntegerCst, gcc.Constructor)):
+                # nothing to do
+                pass
+            else:
+                raise Exception("Unexpected rhs: {}".format(repr(rhs)))
+        else:
+            raise Exception("Unexpected lhs: {}".format(repr(lhs)))
 
 
 ps = RaceFinder(name='race-finder')

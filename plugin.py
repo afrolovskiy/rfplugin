@@ -277,11 +277,11 @@ class RaceFinder(gcc.IpaPass):
             else:
                 access_summary.update(access_table)
 
-         print 'variables: {}'.format(variables.to_dict())
-         print '----------'
-         print 'lockset: {}'.format(lockset_summary)
-         print '---------'
-         print 'accesses: {}'.format(access_summary)
+        print 'variables: {}'.format(variables.to_dict())
+        print '----------'
+        print 'lockset: {}'.format(lockset_summary)
+        print '---------'
+        print 'accesses: {}'.format(access_summary)
 
     def print_info(self, fun):
         print 'Function: {}'.format(fun.decl.name)

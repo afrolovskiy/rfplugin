@@ -618,7 +618,7 @@ class RaceFinder(gcc.IpaPass):
     def rebind_lockset(self, lockset, args, formals, variables):
         return RelativeLockset(
             self.rebind_set(lockset.acquired, args, formals, variables),
-            self.rebind_set(lockset.released, args, formals, variables
+            self.rebind_set(lockset.released, args, formals, variables)
         )
 
     def rebind_set(self, old_set, args, formals, variables):

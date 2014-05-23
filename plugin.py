@@ -564,22 +564,72 @@ class RaceFinder(gcc.IpaPass):
                     return
                 self.analyze_node(node)
                 summary = self.summaries[fname]
-            summary = self.rebindSummary(summary, stat)
+            summary = self.rebindSummary(summary, stat, variables)
             import ipdb; ipdb.set_trace()
 
-    def rebindSummary(self, summary, stat):
+    def rebindSummary(self, summary, stat, variables):
         summary = copy.deepcopy(summary)
 
         # rebind guarded access table
         for ga in summary['accesses'].accesses:
-            if gs.access.is_formal():
-                # need rebind
-                import ipdb; ipdb.set_trace()
+            if ga.access.is_formal():
+                # rebind accessed location
+                ga.access = copy.deepcopy(self.find_rebinding_location(ga.access, stat.args, summary['formals'], variables))
 
-        # rebind relative lockset
-        # TODO
+            # rebind relative lockset
+            ga.lockset = self.rebind_lockset(ga.lockset, stat.args, summary['formals'], variables)
 
-        return summary 
+        # rebind function relative lockset summary
+        summary['lockset'] = self.rebind_lockset(summary['lockset'], stat.args, summary['formals'], variables)
+
+        return summary
+
+    def find_rebinding_location(self, location, args, formals, variables):
+        idx, level = self.find_parent(location, formals)
+        if idx is None or level is None:
+            import ipdb; ipdb.set_trace()
+            raise Exception('Critical error')
+
+        arg = args[idx]
+        vname = str(arg.var) if isinstance(arg, gcc.SsaName) else str(arg)
+        new_location = variables[vname]
+        for idx in range(level):
+            new_location = new_location.value.location
+
+        return new_location
+
+
+    def find_parent(self, location, formals):
+        for idx in range(len(formals)):
+            formal, level = formals[idx], 0
+
+            while True:
+                if formal == location:
+                    return idx, level
+
+                formal = formal.value.location
+
+                if isinstance(formal, Value):
+                    break
+
+                level = level + 1
+
+        return None, None
+
+    def rebind_lockset(self, lockset, args, formals, variables):
+        lockset = RelativeLocset()
+
+        for acquired in lockset.acquired:
+            if acquired.is_formal():
+                acquired = self.find_rebinding_location(acquired, args, formals, variables)
+            lockset.acquired.add(copy.deepcopy(acquired))
+
+        for released in ga.lockset.released:
+            if released.is_formal():
+                released = self.find_rebinding_location(released, stat.args, summary['formals'], variables)
+            lockset.released.add(copy.deepcopy(released))
+
+        return lockset
 
 
 ps = RaceFinder(name='race-finder')

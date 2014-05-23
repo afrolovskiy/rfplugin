@@ -349,6 +349,7 @@ class RaceFinder(gcc.IpaPass):
             # nothing to do
             pass
         else:
+            import ipdb; ipdb.set_trace()
             raise Exception('Unexpected value: {}'.format(repr(value)))
 
 

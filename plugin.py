@@ -256,8 +256,8 @@ class RaceFinder(gcc.IpaPass):
         fun = node.decl.function
         print '==========================================='
         print 'Analyzed: {}'.format(node.decl.name)
-        #self.print_info(fun)
-        #print '------------------------------------------'
+        self.print_info(fun)
+        print '------------------------------------------'
 
         variables = self.init_variables(fun)
 

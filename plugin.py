@@ -409,7 +409,7 @@ class RaceFinder(gcc.IpaPass):
             location = variables[str(value)]
             if location.is_shared():
                 access_table.add(GuardedAccess(
-                    copy.deepcopy(location), copy.deepcopy(lockset), kind, stat.file, stat.line))
+                    copy.deepcopy(location), copy.deepcopy(lockset), kind, stat.loc.file, stat.loc.line))
         elif isinstance(value, gcc.MemRef):
             # *p
             # harcoded
@@ -418,12 +418,12 @@ class RaceFinder(gcc.IpaPass):
             location = variables[name]
             if location.is_shared():
                 access_table.add(GuardedAccess(
-                    copy.deepcopy(location), copy.deepcopy(lockset), GuardedAccess.READ, stat.file, stat.line))
+                    copy.deepcopy(location), copy.deepcopy(lockset), GuardedAccess.READ, stat.loc.file, stat.loc.line))
 
             accessed = location.value.location
             if accessed.is_shared():
                 access_table.add(GuardedAccess(
-                    copy.deepcopy(accessed), copy.deepcopy(lockset), kind, stat.file, stat.line))
+                    copy.deepcopy(accessed), copy.deepcopy(lockset), kind, stat.loc.file, stat.loc.line))
         elif value is None or isinstance(value, (gcc.IntegerCst, gcc.AddrExpr, gcc.Constructor)):
             # do nothing
             pass

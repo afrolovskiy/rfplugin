@@ -49,6 +49,18 @@ class GuardedAccess(object):
         }
 
 
+class GuardedAccessTable(object):
+    def __init__(self, accesses=None):
+        self.accesses = accesses or set()
+
+    def to_dict(self):
+        return [ga.to_dict() for ga in self.accesses]
+
+    def add(self, access):
+        if access not in self.accesses:
+            self.accesses.add(access)
+
+
 class Type(object):
     def __init__(self, name):
         self.name = name
@@ -97,7 +109,7 @@ class Location(object):
 
     def __hash__(self):
         return (hash(self.name) + 2 * hash(self.type) + 3 * hash(self.visibility) +
-                4 * hash(self.status) + 5 * hash(self.value))
+                4 * hash(self.status))
 
     def __eq__(self, other):
         return hash(self) == hash(other)
@@ -112,6 +124,12 @@ class Location(object):
         if with_value:
             res['value'] = self.value.to_dict() if self.value else None
         return res
+
+    def is_shared(self):
+        return self.visibility in (self.VISIBILITY_GLOBAL, self.VISIBILITY_FORMAL)
+
+    def is_fake(self):
+        return self.status == self.STATUS_FAKE
 
 
 class Address(object):
@@ -157,17 +175,18 @@ class RaceFinder(gcc.IpaPass):
         self.global_variables = {}
 
     def execute(self, *args, **kwargs):
-        self.init_global_variables()
-        import ipdb; ipdb.set_trace()
+        self.global_variables = self.init_global_variables()
         for node in gcc.get_callgraph_nodes():
             if not self.is_analyzed(node):
                 self.analyze_node(node)
 
     def init_global_variables(self):
+        global_variables = {}
         for variable in gcc.get_variables():
             name, type = variable.decl.name, variable.decl.type
-            self.global_variables[name] = self.init_variable(
+            global_variables[name] = self.init_variable(
                 name, type, visibility=Location.VISIBILITY_GLOBAL)
+        return global_variables
 
     def init_variable(self, name, type, visibility=None, status=None):
         visibility = visibility or Location.VISIBILITY_LOCAL
@@ -206,8 +225,9 @@ class RaceFinder(gcc.IpaPass):
     def analyze_node(self, node):
         fun = node.function
         pathes = self.build_pathes(fun)
+        variables = self.init_variables(fun)
         for path in pathes:
-            self.analyze_path(fun, path)
+            self.analyze_path(fun, path, copy.deepcopy(variables)
 
     def build_pathes(self, fun):
         def walk(block, path):
@@ -227,11 +247,100 @@ class RaceFinder(gcc.IpaPass):
 
         return walk(fun.cfg.entry, [])
 
-    def analyze_path(self, fun, path):
-        import ipdb; ipdb.set_trace()
+    def analyze_path(self, fun, path, variables):
+        lockset = RelativeLockset()
+        access_table = GuardedAccessTable() 
         for block in path:
             for stat in block.gimple:
-                pass
+                print 'Instruction: {}'.format(str(stat))
+                self.analyze_statement(stat, variables, lockset, access_table)
+                print access_table.to_dict()
+
+    def init_variables(self, fun):
+        variables = copy.deepcopy(self.global_variables)
+        variables.update(self.init_formal_parameters(fun))
+        variables.update(self.init_local_variables(fun))
+        return variables
+
+    def init_formal_variables(self, fun):
+        formal_parameters = {}
+        for decl in fun.decl.arguments:
+            name, type = str(decl), decl.type 
+            formal_parameters[name] = self.init_variable(
+                name, type, visibility=Location.VISIBILITY_FORMAL)
+        return formal_parameters
+
+    def init_local_variables(self, fun):
+        local_variables = {}
+        for decl in fun.local_decls:
+            name, type = str(decl), decl.type
+            local_variables[name= self.init_variable(
+                name, type, visibility=Location.VISIBILITY_LOCAL)
+        return local_variables
+
+    def analyze_statement(self, stat, variables, lockset, access_table):
+        self.analyze_access(stat, variables, lockset, access_table)
+        # TODO
+
+    def analyze_access(self, stat, variables, lockset, access_table):
+        if isinstance(stat, gcc.GimpleAssign):
+            # analyze left side of assignment
+            self.analyze_value(stat.lhs, variables, lockset, access_table, GuardedAccess.WRITE)
+
+            # analyze right side of assign
+            for rhs in stat.rhs:
+                self.analyze_value(rhs, variables, lockset, access_table, GuardedAccess.READ)
+
+        elif isinstance(stat, gcc.GimpleCall):
+            if stat.lhs:
+                # analyze lhs
+                self.analyze_value(stat.lhs, variables, lockset, access_table, GuardedAccess.WRITE)
+
+            # analyze function arguments
+            for rhs in stat.args:
+                self.analyze_value(rhs, variables, lockset, access_table, GuardedAccess.READ)
+
+        elif isinstance(stat, gcc.GimpleReturn):
+            if stat.retval:
+                # analuze returned value
+                self.analyze_value(stat.retval, variables, lockset, access_table, GuardedAccess.READ)
+
+        elif isinstance(stat, gcc.GimpleLabel):
+            # nothing to do
+            pass
+
+        elif (isinstance(stat, gcc.GimpleCond) and stat.exprcode in
+                (gcc.EqExpr, gcc.NeExpr, gcc.LeExpr, gcc.LtExpr, gcc.GeExpr, gcc.GtExpr,)):
+            # analyze left and right side of compare expression
+            self.analyze_value(stat.lhs, variables, lockset, access_table, GuardedAccess.READ)
+            self.analyze_value(stat.rhs, variables, lockset, access_table, GuardedAccess.READ)
+        else:
+            raise Exception('Unhandled statement: {}'.format(repr(stat)))
+
+    def analyze_value(self, value, variables, lockset, access_table, kind):
+        if isinstance(value, (gcc.VarDecl, gcc.ParmDecl)):
+            # p
+            location = variables[str(value)]
+            if location.is_shared():
+                access_table.add(GuardedAccess(
+                    copy.deepcopy(location), copy.deepcopy(lockset), kind))
+        elif isinstance(value, gcc.MemRef):
+            # *p
+            location = variables[str(value.operand)]
+            if location.is_shared():
+                access_table.add(GuardedAccess(
+                    copy.deepcopy(location), copy.deepcopy(lockset), GuardedAccess.READ))
+
+            accessed = location.value.location
+            if accessed.is_shared():
+                access_table.add(GuardedAccess(
+                    copy.deepcopy(accessed), copy.deepcopy(lockset), kind))
+        elif isinstance(value, (gcc.IntegerCst, gcc.AddrExpr, gcc.Constructor)):
+            # nothing to do
+            pass
+        else:
+            raise Exception('Unexpected value: {}'.format(repr(value)))
+
 
 
 ps = RaceFinder(name='race-finder')

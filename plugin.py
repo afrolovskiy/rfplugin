@@ -277,11 +277,11 @@ class RaceFinder(gcc.IpaPass):
             else:
                 access_summary.update(access_table)
 
-        print 'variables: {}'.format(variables.to_dict())
+        print 'variables: {}'.format(variables)
         print '----------'
-        print 'lockset: {}'.format(lockset_summary)
+        print 'lockset: {}'.format(lockset_summary.to_dict())
         print '---------'
-        print 'accesses: {}'.format(access_summary)
+        print 'accesses: {}'.format(access_summary.to_dict())
 
     def print_info(self, fun):
         print 'Function: {}'.format(fun.decl.name)
@@ -392,7 +392,7 @@ class RaceFinder(gcc.IpaPass):
             raise Exception('Unhandled statement: {}'.format(repr(stat)))
 
     def analyze_value(self, value, variables, lockset, access_table, kind):
-        print 'Accessed value: {} with {}'.format(str(value), repr(value))
+        #print 'Accessed value: {} with {}'.format(str(value), repr(value))
         if isinstance(value, gcc.SsaName):
             self.analyze_value(value.var, variables, lockset, access_table, kind)
         elif isinstance(value, (gcc.VarDecl, gcc.ParmDecl)):

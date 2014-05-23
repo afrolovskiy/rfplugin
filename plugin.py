@@ -261,8 +261,8 @@ class RaceFinder(gcc.IpaPass):
         fun = node.decl.function
         print '==========================================='
         print 'Analyzed: {}'.format(node.decl.name)
-        self.print_info(fun)
-        print '------------------------------------------'
+        #self.print_info(fun)
+        #print '------------------------------------------'
 
         variables = self.init_variables(fun)
 
@@ -282,10 +282,10 @@ class RaceFinder(gcc.IpaPass):
             else:
                 access_summary.update(access_table)
 
-        print 'variables:'
-        for k, v in variables.items():
-            pprint(v.to_dict())
-        print '----------'
+        #print 'variables:'
+        #for k, v in variables.items():
+        #    pprint(v.to_dict())
+        #print '----------'
         print 'lockset'
         pprint(lockset_summary.to_dict())
         print '---------'

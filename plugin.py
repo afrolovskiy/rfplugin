@@ -239,7 +239,7 @@ class RaceFinder(gcc.IpaPass):
 
     def build_pathes(self, fun):
         def walk(block, path):
-            if count_repetitions(path, block) > Analyzer.K:
+            if count_repetitions(path, block) > RaceFinder.K:
                 return []
 
             path.append(block)

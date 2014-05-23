@@ -265,6 +265,7 @@ class RaceFinder(gcc.IpaPass):
         for block in path:
             for stat in block.gimple:
                 print 'Instruction: {}'.format(str(stat))
+                print 'Type: {}'.format(repr(stat))
                 self.analyze_statement(stat, variables, lockset, access_table)
                 print access_table.to_dict()
 
@@ -330,6 +331,7 @@ class RaceFinder(gcc.IpaPass):
             raise Exception('Unhandled statement: {}'.format(repr(stat)))
 
     def analyze_value(self, value, variables, lockset, access_table, kind):
+        print 'Accessed value: {} with {}'.format(str(value), repr(value))
         if isinstance(value, gcc.SsaName):
             self.analyze_value(value.var, variables, lockset, access_table, kind)
         elif isinstance(value, (gcc.VarDecl, gcc.ParmDecl)):

@@ -44,7 +44,7 @@ class GuardedAccess(object):
     def __hash__(self):
         access = hash(self.access)
         lockset = hash(self.lockset)
-        kind = hash(kind)
+        kind = hash(self.kind)
         return access + 2 * lockset + 3 * kind
 
     def __eq__(self, other):

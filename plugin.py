@@ -31,6 +31,17 @@ class RelativeLockset(object):
             'released': [l.to_dict() for l in self.released],
         }
 
+    def acquire(self, lock):
+        if lock in self.released:
+            self.released.remove(lock)
+        self.acquired.add(lock)
+
+    def release(self, lock):
+        if lock in self.acquired:
+            self.acquired.remove(lock)
+        else:
+            self.released.add(lock)
+
 
 class GuardedAccess(object):
     READ = 'read'
@@ -280,6 +291,9 @@ class RaceFinder(gcc.IpaPass):
                 print 'Type: {}'.format(repr(stat))
                 self.analyze_statement(stat, variables, lockset, access_table)
                 print access_table.to_dict()
+                print lockset.to_dict()
+                if fun.decl.name == 'bar':
+                    import ipdb; ipdb.set_trace()
                 print '+++++++++++++++++++++++++++++++'
 
     def init_variables(self, fun):
@@ -311,7 +325,8 @@ class RaceFinder(gcc.IpaPass):
             lhs, rhs = stat.lhs, stat.rhs[0]
             self.analyze_aliases(lhs, rhs, variables)
 
-        # TODO
+        if isinstance(stat, gcc.GimpleCall):
+            self.analyze_call(stat, variables, lockset)        
 
     def analyze_access(self, stat, variables, lockset, access_table):
         if isinstance(stat, gcc.GimpleAssign):
@@ -463,6 +478,33 @@ class RaceFinder(gcc.IpaPass):
                 raise Exception("Unexpected rhs: {}".format(repr(rhs)))
         else:
             raise Exception("Unexpected lhs: {}".format(repr(lhs)))
+
+    def analyze_call(self, stat, variables, lockset):
+        if str(stat.fndecl) == 'pthread_mutex_lock':
+            arg = stat.args[0]
+            if isinstance(arg, gcc.AddrExpr):
+                name = str(arg.operand.var) if isinstance(arg.operand, gcc.SsaName) else str(arg.operand)
+                location = variables[name]
+                lockset.acquire(Address(location))
+            elif isinstance(arg, (gcc.SsaName, gcc.VarDecl, gcc.ParmDecl)):
+                name = str(arg.var) if isinstance(arg, gcc.SsaName) else str(arg)
+                location = variables[name]
+                lockset.acquire(location.value)
+            else:
+                raise Exception('Unexpexted argument of pthread_mutex_lock')
+        
+        elif str(stat.fndecl) == 'pthread_mutex_unlock':
+            arg = stat.args[0]
+            if isinstance(arg, gcc.AddrExpr):
+                name = str(arg.operand.var) if isinstance(arg.operand, gcc.SsaName) else str(arg.operand)
+                location = variables[name]
+                lockset.release(Address(location))
+            elif isinstance(arg, (gcc.SsaName, gcc.VarDecl, gcc.ParmDecl)):
+                name = str(arg.var) if isinstance(arg, gcc.SsaName) else str(arg)
+                location = variables[name]
+                lockset.release(location.value)
+            else:
+                raise Exception('Unexpexted argument of pthread_mutex_unlock')        
 
 
 ps = RaceFinder(name='race-finder')

@@ -564,6 +564,7 @@ class RaceFinder(gcc.IpaPass):
                     return
                 self.analyze_node(node)
                 summary = self.summaries[fname]
+            import ipdb; ipdb.set_trace()
             summary = self.rebindSummary(summary, stat, variables)
             import ipdb; ipdb.set_trace()
 

@@ -617,19 +617,19 @@ class RaceFinder(gcc.IpaPass):
         return None, None
 
     def rebind_lockset(self, lockset, args, formals, variables):
-        lockset = RelativeLockset()
+        new_lockset = RelativeLockset()
 
         for acquired in lockset.acquired:
             if acquired.is_formal():
                 acquired = self.find_rebinding_location(acquired, args, formals, variables)
-            lockset.acquired.add(copy.deepcopy(acquired))
+            new_lockset.acquired.add(copy.deepcopy(acquired))
 
-        for released in ga.lockset.released:
+        for released in lockset.released:
             if released.is_formal():
                 released = self.find_rebinding_location(released, stat.args, summary['formals'], variables)
-            lockset.released.add(copy.deepcopy(released))
+            new_lockset.released.add(copy.deepcopy(released))
 
-        return lockset
+        return new_lockset
 
 
 ps = RaceFinder(name='race-finder')

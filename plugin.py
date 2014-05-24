@@ -212,12 +212,18 @@ class RaceFinder(gcc.IpaPass):
         super(RaceFinder, self).__init__(*args, **kwargs)
         self.summaries = {}
         self.global_variables = {}
+        self.entries = []
 
     def execute(self, *args, **kwargs):
         self.global_variables = self.init_global_variables()
+
+        # calculate summaries for functions
         for node in gcc.get_callgraph_nodes():
             if not self.is_analyzed(node):
                 self.analyze_node(node)
+
+        # find thread entry points and concretize summaries
+        self.find_races()
 
     def init_global_variables(self):
         global_variables = {}
@@ -559,6 +565,18 @@ class RaceFinder(gcc.IpaPass):
             else:
                 raise Exception('Unexpexted argument of pthread_mutex_unlock')
 
+        elif fname == 'pthread_create':
+            called = str(stat.args[2].operand)
+            summary = self.summaries.get(called)
+            if summary is None:
+                node = self.get_node_by_name(called)
+                if node is None:
+                    raise Exception('Create thread with unexpected function: {}'.format(called))
+                self.analyze_node(node)
+                summary = self.summaries[called]
+            summary = self.rebindSummary(summary, stat.args[3], variables)
+            self.entries.append({'name': called, 'accesses': summary['accesses']})
+
         else:
             summary = self.summaries.get(fname)
             if summary is None:
@@ -568,25 +586,25 @@ class RaceFinder(gcc.IpaPass):
                     return
                 self.analyze_node(node)
                 summary = self.summaries[fname]
-            summary = self.rebindSummary(summary, stat, variables)
+            summary = self.rebindSummary(summary, stat.args, variables)
             # update current lockset and access table
             self.update_lockset(lockset, summary['lockset'])
             access_table.update(summary['accesses'])
 
-    def rebindSummary(self, summary, stat, variables):
+    def rebindSummary(self, summary, args, variables):
         summary = copy.deepcopy(summary)
 
         # rebind guarded access table
         for ga in summary['accesses'].accesses:
             if ga.access.is_formal():
                 # rebind accessed location
-                ga.access = copy.deepcopy(self.find_rebinding_location(ga.access, stat.args, summary['formals'], variables))
+                ga.access = copy.deepcopy(self.find_rebinding_location(ga.access, args, summary['formals'], variables))
 
             # rebind relative lockset
-            ga.lockset = self.rebind_lockset(ga.lockset, stat.args, summary['formals'], variables)
+            ga.lockset = self.rebind_lockset(ga.lockset, args, summary['formals'], variables)
 
         # rebind function relative lockset summary
-        summary['lockset'] = self.rebind_lockset(summary['lockset'], stat.args, summary['formals'], variables)
+        summary['lockset'] = self.rebind_lockset(summary['lockset'], args, summary['formals'], variables)
 
         return summary
 
@@ -648,6 +666,22 @@ class RaceFinder(gcc.IpaPass):
     def update_lockset(self, lockset, flockset):
         lockset.acquired = lockset.acquired.union(flockset.acquired).difference(flockset.released)
         lockset.released = lockset.released.union(flockset.released).difference(flockset.acquired)
+
+    def find_races(self):
+        for idx1 in range(len(self.entries) - 1):
+            for idx2 in range(idx1 + 1, len(self.entries)):
+                self.compare_accesses(self.entries[idx1], self.entries[idx2])
+
+    def compare_entries(self, entry1, entry2):
+        print '++++++++++++++++++++++++++++++'
+        print '++++++++++++++++++++++++++++++'
+        print 'Races:'
+        for ga1 in entry1['accesses']:
+            for ga2 in entry2['accesses']:
+                if ga1.access == ga2.access and (ga1.kind == GuardedAccess.WRITE or ga2.kind == GuardedAccess.WRITE):
+                    # TODO: replace ga1.access and ga2.access !!! now it's very  bad !!!
+                    pprint(ga1.to_dict())
+                    pprint(ga2.to_dict())
 
 
 ps = RaceFinder(name='race-finder')

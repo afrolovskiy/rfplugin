@@ -302,6 +302,7 @@ class RaceFinder(gcc.IpaPass):
             'lockset': lockset_summary,
             'accesses': access_summary,
             'formals': [variables[str(arg)] for arg in fun.decl.arguments],
+            'variables': variables,
         }
 
         #import ipdb; ipdb.set_trace()

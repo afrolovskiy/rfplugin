@@ -574,7 +574,7 @@ class RaceFinder(gcc.IpaPass):
                     raise Exception('Create thread with unexpected function: {}'.format(called))
                 self.analyze_node(node)
                 summary = self.summaries[called]
-            summary = self.rebindSummary(summary, stat.args[3], variables)
+            summary = self.rebindSummary(summary, [stat.args[3],], variables)
             self.entries.append({'name': called, 'accesses': summary['accesses']})
 
         else:

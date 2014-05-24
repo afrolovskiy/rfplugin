@@ -615,10 +615,20 @@ class RaceFinder(gcc.IpaPass):
             raise Exception('Critical error')
 
         arg = args[idx]
+
+        need_address = False
+        if isinstance(arg, gcc.AddrExpr):
+          arg = arg.operand
+          need_address = True
+          level = level - 1
+
         vname = str(arg.var) if isinstance(arg, gcc.SsaName) else str(arg)
         new_location = variables[vname]
         for idx in range(level):
             new_location = new_location.value.location
+
+        if need_address:
+            new_location = Address(new_location)
 
         return new_location
 
@@ -672,16 +682,19 @@ class RaceFinder(gcc.IpaPass):
             for idx2 in range(idx1 + 1, len(self.entries)):
                 self.compare_accesses(self.entries[idx1], self.entries[idx2])
 
-    def compare_entries(self, entry1, entry2):
+    def compare_accesses(self, entry1, entry2):
         print '++++++++++++++++++++++++++++++'
         print '++++++++++++++++++++++++++++++'
         print 'Races:'
-        for ga1 in entry1['accesses']:
-            for ga2 in entry2['accesses']:
+        for ga1 in entry1['accesses'].accesses:
+            for ga2 in entry2['accesses'].accesses:
                 if ga1.access == ga2.access and (ga1.kind == GuardedAccess.WRITE or ga2.kind == GuardedAccess.WRITE):
                     # TODO: replace ga1.access and ga2.access !!! now it's very  bad !!!
+                    print entry1['name']
                     pprint(ga1.to_dict())
+                    print entry2['name']
                     pprint(ga2.to_dict())
+                    print '-----------------'
 
 
 ps = RaceFinder(name='race-finder')

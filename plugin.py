@@ -568,8 +568,9 @@ class RaceFinder(gcc.IpaPass):
                 self.analyze_node(node)
                 summary = self.summaries[fname]
             summary = self.rebindSummary(summary, stat, variables)
-            # TODO: update current lockset and access table
-            raise
+            # update current lockset and access table
+            self.update_lockset(lockset, summary['lockset'])
+            access_table.update(summary['accesses'])
 
     def rebindSummary(self, summary, stat, variables):
         summary = copy.deepcopy(summary)
@@ -643,6 +644,9 @@ class RaceFinder(gcc.IpaPass):
 
         return new_set
 
+    def update_lockset(self, lockset, flockset):
+        lockset.acquired = lockset.acquired.union(flockset.acquired).difference(flockset.released)
+        lockset.released = lockset.released.union(flockset.released).difference(flockset.acquired)
 
 
 ps = RaceFinder(name='race-finder')

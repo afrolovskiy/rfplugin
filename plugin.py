@@ -688,7 +688,7 @@ class RaceFinder(gcc.IpaPass):
         print 'Races:'
         for ga1 in entry1['accesses'].accesses:
             for ga2 in entry2['accesses'].accesses:
-                if ga1.access == ga2.access and (ga1.kind == GuardedAccess.WRITE or ga2.kind == GuardedAccess.WRITE):
+                if ga1.access == ga2.access and (ga1.kind == GuardedAccess.WRITE or ga2.kind == GuardedAccess.WRITE) and len(ga1.lockset.acquired.intersection(ga2.lockset.acquired)) == 0:
                     # TODO: replace ga1.access and ga2.access !!! now it's very  bad !!!
                     print entry1['name']
                     pprint(ga1.to_dict())

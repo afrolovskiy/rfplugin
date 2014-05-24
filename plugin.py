@@ -377,7 +377,7 @@ class RaceFinder(gcc.IpaPass):
             self.analyze_aliases(lhs, rhs, variables)
 
         if isinstance(stat, gcc.GimpleCall):
-            self.analyze_call(stat, variables, lockset)        
+            self.analyze_call(stat, variables, lockset, access_table) 
 
     def analyze_access(self, stat, variables, lockset, access_table):
         if isinstance(stat, gcc.GimpleAssign):

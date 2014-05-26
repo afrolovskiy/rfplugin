@@ -292,10 +292,6 @@ class RaceFinder(gcc.IpaPass):
 
     def analyze_node(self, node):
         fun = node.decl.function
-        #print '==========================================='
-        #print 'Analyzed: {}'.format(node.decl.name)
-        #self.print_info(fun)
-        #print '------------------------------------------'
 
         variables = self.init_variables(fun)
 
@@ -314,16 +310,6 @@ class RaceFinder(gcc.IpaPass):
                 access_summary = access_table
             else:
                 access_summary.update(access_table)
-
-        #print 'variables:'
-        #for k, v in variables.items():
-        #    pprint(v.to_dict())
-        #print '----------'
-        #print 'lockset'
-        #pprint(lockset_summary.to_dict())
-        #print '---------'
-        #print 'accesses:'
-        #pprint(access_summary.to_dict())
 
         self.summaries[fun.decl.name] = {
             'lockset': lockset_summary,
@@ -364,12 +350,7 @@ class RaceFinder(gcc.IpaPass):
 
         for block in path:
             for stat in block.gimple:
-                #print 'Instruction: {}'.format(str(stat))
-                #print 'Type: {}'.format(repr(stat))
                 self.analyze_statement(stat, variables, lockset, access_table)
-                #print access_table.to_dict()
-                #print lockset.to_dict()
-                #print '+++++++++++++++++++++++++++++++'
 
         return lockset, access_table
 
@@ -595,7 +576,6 @@ class RaceFinder(gcc.IpaPass):
                     raise Exception('Create thread with unexpected function: {}'.format(called))
                 self.analyze_node(node)
                 summary = self.summaries[called]
-            #import ipdb; ipdb.set_trace()
             summary = self.rebindSummary(summary, [stat.args[3],], variables)
             self.entries.append({'name': called, 'accesses': summary['accesses']})
 
@@ -638,7 +618,6 @@ class RaceFinder(gcc.IpaPass):
         arg = args[idx]
 
         if isinstance(arg, gcc.AddrExpr):
-            # TODO: create fake variable
             arg = arg.operand
             vname = str(arg)
             old_location = variables[vname]
@@ -708,7 +687,7 @@ class RaceFinder(gcc.IpaPass):
         warnings = set()
         for ga1 in entry1['accesses'].accesses:
             for ga2 in entry2['accesses'].accesses:
-                if ga1.access == ga2.access and (ga1.kind == GuardedAccess.WRITE or ga2.kind == GuardedAccess.WRITE) and len(ga1.lockset.acquired.intersection(ga2.lockset.acquired)) == 0:
+                if self.has_race(ga1, ga2):
                     warnings.add(json.dumps({
                         'variable': ga1.access.name,
                         'visibility': ga1.access.visibility,
@@ -722,6 +701,11 @@ class RaceFinder(gcc.IpaPass):
                         'function': entry2['name']
                     }))
         return warnings
+
+    def has_race(self, ga1, ga2):
+        return (ga1.access == ga2.access and
+                (ga1.kind == GuardedAccess.WRITE or ga2.kind == GuardedAccess.WRITE) and
+                len(ga1.lockset.acquired.intersection(ga2.lockset.acquired)) == 0)
 
 
 ps = RaceFinder(name='race-finder')

@@ -15,7 +15,28 @@ def count_repetitions(array, value):
     return count
 
 
-class RelativeLockset(object):
+class ToDict(object):
+    def to_dict(self):
+        result = {}
+        for field in self.fields:
+            value = getattr(field, self)
+            if hasattr('__iter__', value):
+                result[field] = []
+                for element in value:
+                    if hasattr('to_dict', element):
+                        result[field].append(element.to_dict())
+                    else:
+                        result[field].append(str(element))
+            elif hasattr('to_dict', value):
+                result[field] = value.to_dict()
+            else:
+                result[field] = str(value)
+        return result
+ 
+
+class RelativeLockset(ToDict):
+    fields = ('acquired', 'released')
+
     def __init__(self, acquired=None, released=None):
         self.acquired = acquired or set()
         self.released = released or set()
@@ -28,12 +49,6 @@ class RelativeLockset(object):
     def __eq__(self, other):
         return hash(self) == self(other)
 
-    def to_dict(self):
-        return {
-            'acquired': [l.to_dict() for l in self.acquired],
-            'released': [l.to_dict() for l in self.released],
-        }
-
     def acquire(self, lock):
         if lock in self.released:
             self.released.remove(lock)
@@ -45,12 +60,17 @@ class RelativeLockset(object):
         else:
             self.released.add(lock)
 
-    def update(self, lockset):
+    def summary(self, lockset):
         self.acquired = self.acquired.intersection(lockset.acquired)
         self.released = self.released.union(lockset.released)
 
+    def update(self, lockset):
+        self.acquired = self.acquired.union(lockset.acquired).difference(lockset.released)
+        self.released = self.released.union(lockset.released).difference(lockset.acquired)
 
-class GuardedAccess(object):
+
+class GuardedAccess(ToDict):
+    fields = ('access', 'lockset', 'kind', 'file', 'line')
     READ = 'read'
     WRITE = 'write'
 
@@ -70,14 +90,16 @@ class GuardedAccess(object):
     def __eq__(self, other):
         return hash(self) == hash(other)
 
-    def to_dict(self):
-        return {
-            'access': self.access.to_dict(),
-            'lockset': self.lockset.to_dict(),
-            'kind': self.kind,
-            'file': self.file,
-            'line': self.line,
-        }
+    @staticmethod
+    def new(location, stat, kind, context):
+        return GuardedAccess(
+            copy.deepcopy(location),
+            copy.deepcopy(context.lockset),
+            kind,
+            stat.loc.file,
+            stat.loc.line
+        )
+
 
 
 class GuardedAccessTable(object):
@@ -95,7 +117,9 @@ class GuardedAccessTable(object):
         self.accesses.update(table.accesses)
 
 
-class Type(object):
+class Type(ToDict):
+    fields = ('name',)
+
     def __init__(self, name):
         self.name = name
 
@@ -105,13 +129,10 @@ class Type(object):
     def __eq__(self, other):
         return hash(self) == hash(other)
 
-    def to_dict(self):
-        return {
-            'name': self.name,
-        }
-
 
 class PointerType(Type):
+    fields = ('name', 'type')
+
     def __init__(self, type):
         super(PointerType, self).__init__(name='pointer')
         self.type = type
@@ -119,20 +140,17 @@ class PointerType(Type):
     def __hash__(self):
         return hash(self.name) + 3 * hash(self.type)
 
-    def to_dict(self):
-        return {
-            'name': self.name,
-            'type': self.type.to_dict(),
-        }
 
+class Location(ToDict):
+    fields = ('name', 'type', 'visibility', 'status', 'area', 'value')
 
-class Location(object):
     VISIBILITY_GLOBAL = 'global'
     VISIBILITY_LOCAL = 'local'
     VISIBILITY_FORMAL = 'formal'
 
     STATUS_COMMON = 'common'
     STATUS_FAKE = 'fake'
+    STATUS_TEMP = 'temp'
 
     def __init__(self, name, type, visibility, status, value=None, area=None):
         self.name = name
@@ -149,18 +167,6 @@ class Location(object):
     def __eq__(self, other):
         return hash(self) == hash(other)
 
-    def to_dict(self, with_value=True):
-        res = {
-            'name': self.name,
-            'type': self.type.to_dict(),
-            'visibility': self.visibility,
-            'status': self.status,
-            'area': self.area,
-        }
-        if with_value:
-            res['value'] = self.value.to_dict() if self.value else None
-        return res
-
     def is_shared(self):
         return self.visibility in (self.VISIBILITY_GLOBAL, self.VISIBILITY_FORMAL)
 
@@ -174,7 +180,8 @@ class Location(object):
         return self.status == self.STATUS_FAKE
 
 
-class Address(object):
+class Address(ToDict):
+
     def __init__(self, location):
         self.location = location
 
@@ -190,7 +197,8 @@ class Address(object):
         }
 
 
-class Value(object):
+class Value(ToDict):
+    fields = ('id',)
     ID_RANGE = (0, 10000)
 
     def __init__(self):
@@ -202,10 +210,41 @@ class Value(object):
     def __eq__(self, other):
         return hash(self) == hash(other)
 
-    def to_dict(self):
-        return {
-            'id': self.id,
-        }
+
+class PathContext(object):
+    def __init__(self, fun, variables, lockset, accesses):
+        self.fun = fun
+        self.variables = variables
+        self.lockset = lockset
+        self.accesses = accesses
+
+
+class Warning(ToDict):
+    fields = ('variable', 'visibility', 'function', 'line')
+
+    def __init__(self, variable, visibility, function, line):
+        self.variable = variable
+        self.visibility = visibility
+        self.function = function
+        self.line
+
+    def __hash__(self):
+        return (hash(self.variable) + hash(self.visibility) +
+                hash(self.function) + hash(self.line))
+
+    def __eq__(self, other):
+        return hash(self) == hash(other)
+
+
+class FunctionSummary(ToDict):
+    fields = ('lockset', 'accesses', 'formals', 'variables')
+
+    def __init__(self, fname, lockset, accesses, formals, variables):
+        self.fname = fname
+        self.lockset = lockset
+        self.accesses = accesses
+        self.formals = formals
+        self.variables = variables
 
 
 class RaceFinder(gcc.IpaPass):
@@ -233,11 +272,10 @@ class RaceFinder(gcc.IpaPass):
         warnings = self.find_races()
 
         for warn in warnings:
-            warn = json.loads(warn)
             msg = ('WARNING: Race condition when accessing '
                    'the variable {variable} ({visibility}) in {function} '
                    'on line {line}')
-            print msg.format(**warn)
+            print msg.format(warn.to_dict())
 
         elapsed_time = time.time() - start_time
         print 'Elapsed time: {} ms'.format(elapsed_time * 1000)
@@ -292,6 +330,7 @@ class RaceFinder(gcc.IpaPass):
 
     def analyze_node(self, node):
         fun = node.decl.function
+        self.print_info(fun)  # for debug
 
         variables = self.init_variables(fun)
 
@@ -304,19 +343,20 @@ class RaceFinder(gcc.IpaPass):
             if lockset_summary is None:
                 lockset_summary = lockset
             else:
-                lockset_summary.update(lockset)
+                lockset_summary.summary(lockset)
 
             if access_summary is None:
                 access_summary = access_table
             else:
                 access_summary.update(access_table)
 
-        self.summaries[fun.decl.name] = {
-            'lockset': lockset_summary,
-            'accesses': access_summary,
-            'formals': [variables[str(arg)] for arg in fun.decl.arguments],
-            'variables': variables,
-        }
+        self.summaries[fun.decl.name] = FunctionSummary(
+            fname=fun.decl.name,
+            lockset=lockset_summary,
+            accesses=access_summary,
+            formals=[variables[str(arg)] for arg in fun.decl.arguments],
+            variables=variables
+        )
 
     def print_info(self, fun):
         print 'Function: {}'.format(fun.decl.name)
@@ -346,13 +386,14 @@ class RaceFinder(gcc.IpaPass):
 
     def analyze_path(self, fun, path, variables):
         lockset = RelativeLockset()
-        access_table = GuardedAccessTable()
+        accesses = GuardedAccessTable()
+        context = PathContext(fun, variables, lockset, accesses)
 
         for block in path:
             for stat in block.gimple:
-                self.analyze_statement(stat, variables, lockset, access_table)
+                self.analyze_statement(stat, context)
 
-        return lockset, access_table
+        return lockset, accesses
 
     def init_variables(self, fun):
         variables = copy.deepcopy(self.global_variables)
@@ -378,85 +419,105 @@ class RaceFinder(gcc.IpaPass):
                 area=str(fun.decl))
         return local_variables
 
-    def analyze_statement(self, stat, variables, lockset, access_table):
-        self.analyze_access(stat, variables, lockset, access_table)
-
-        if isinstance(stat, gcc.GimpleAssign) and len(stat.rhs) == 1:
-            lhs, rhs = stat.lhs, stat.rhs[0]
-            self.analyze_aliases(lhs, rhs, variables)
-
+    def analyze_statement(self, stat, context):
+        self.analyze_access(stat, context)
+        self.analyze_aliases(stat, context)
         if isinstance(stat, gcc.GimpleCall):
-            self.analyze_call(stat, variables, lockset, access_table) 
+            self.analyze_call(stat, context)
 
-    def analyze_access(self, stat, variables, lockset, access_table):
+    def analyze_access(self, stat, context):
         if isinstance(stat, gcc.GimpleAssign):
             # analyze left side of assignment
-            self.analyze_value(stat.lhs, stat, variables, lockset, access_table, GuardedAccess.WRITE)
+            self.analyze_value(stat.lhs, stat, context, GuardedAccess.WRITE)
 
             # analyze right side of assign
             for rhs in stat.rhs:
-                self.analyze_value(rhs, stat, variables, lockset, access_table, GuardedAccess.READ)
+                self.analyze_value(rhs, stat, context, GuardedAccess.READ)
 
         elif isinstance(stat, gcc.GimpleCall):
             if stat.lhs:
                 # analyze lhs
-                self.analyze_value(stat.lhs, stat, variables, lockset, access_table, GuardedAccess.WRITE)
+                self.analyze_value(stat.lhs, stat, context, GuardedAccess.WRITE)
 
             # analyze function arguments
             for rhs in stat.args:
-                self.analyze_value(rhs, stat, variables, lockset, access_table, GuardedAccess.READ)
+                self.analyze_value(rhs, stat, context, GuardedAccess.READ)
 
         elif isinstance(stat, gcc.GimpleReturn):
             if stat.retval:
                 # analuze returned value
-                self.analyze_value(stat.retval, stat, variables, lockset, access_table, GuardedAccess.READ)
-
-        elif isinstance(stat, gcc.GimpleLabel):
-            # nothing to do
-            pass
+                self.analyze_value(stat.retval, stat, context, GuardedAccess.READ)
 
         elif (isinstance(stat, gcc.GimpleCond) and stat.exprcode in
                 (gcc.EqExpr, gcc.NeExpr, gcc.LeExpr, gcc.LtExpr, gcc.GeExpr, gcc.GtExpr,)):
             # analyze left and right side of compare expression
-            self.analyze_value(stat.lhs, stat, variables, lockset, access_table, GuardedAccess.READ)
-            self.analyze_value(stat.rhs, stat, variables, lockset, access_table, GuardedAccess.READ)
+            self.analyze_value(stat.lhs, stat, context, GuardedAccess.READ)
+            self.analyze_value(stat.rhs, stat, context, GuardedAccess.READ)
+
+        elif isinstance(stat, gcc.GimpleLabel):
+            # do nothing
+            pass
+
         else:
             raise Exception('Unhandled statement: {}'.format(repr(stat)))
 
-    def analyze_value(self, value, stat, variables, lockset, access_table, kind):
-        #print 'Accessed value: {} with {}'.format(str(value), repr(value))
-        if isinstance(value, gcc.SsaName):
-            self.analyze_value(value.var, stat, variables, lockset, access_table, kind)
-        elif isinstance(value, (gcc.VarDecl, gcc.ParmDecl)):
+    def analyze_value(self, value, stat, context, kind):
+        if isinstance(value, (gcc.SsaName, gcc.VarDecl, gcc.ParmDecl)):
             # p
-            location = variables[str(value)]
+            location = self.get_location(value, context)
             if location.is_global():
-                access_table.add(GuardedAccess(
-                    copy.deepcopy(location), copy.deepcopy(lockset), kind, stat.loc.file, stat.loc.line))
+                ga = GuardedAccess.new(location, stat, kind, context)
+                context.accesses.add(ga)
+
         elif isinstance(value, gcc.MemRef):
             # *p
-            # harcoded
-            name = str(value.operand.var) if isinstance(value.operand, gcc.SsaName) else str(value.operand)
+            location = self.get_location(value.operand, context)  # p
+            if location.is_global():
+                ga = GuardedAccess.new(location, stat, GuardedAccess.READ, context)
+                context.accesses.add(ga)
 
-            location = variables[name]
+            location = location.value.location  # *p
             if location.is_shared():
-                access_table.add(GuardedAccess(
-                    copy.deepcopy(location), copy.deepcopy(lockset), GuardedAccess.READ, stat.loc.file, stat.loc.line))
+                ga = GuardedAccess.new(location, stat, kind, context)
+                context.accesses.add(ga)
 
-            accessed = location.value.location
-            if accessed.is_shared():
-                access_table.add(GuardedAccess(
-                    copy.deepcopy(accessed), copy.deepcopy(lockset), kind, stat.loc.file, stat.loc.line))
         elif value is None or isinstance(value, (gcc.IntegerCst, gcc.AddrExpr, gcc.Constructor)):
             # do nothing
             pass
+
         else:
             raise Exception('Unexpected value: {}'.format(repr(value)))
 
-    def analyze_aliases(self, lhs, rhs, variables):
+    def get_name(self, value):
+        if isinstance(value, gcc.SsaName) and (value.var is not None):
+            return str(value.var)
+        return str(value)
+
+    def get_location(self, value, context):
+        name = self.get_name(value)
+        locations = context.variables
+        if (isinstance(value, gcc.SsaName) and
+                (value.var is None) and (name not in locations)):
+            # create location for temp variable
+            locations[name] = Location(
+                name=name,
+                type=None,
+                visibility=Location.VISIBILITY_LOCAL,
+                status=Location.STATUS_TEMP,
+                area=context.fun.decl.name
+            )
+        return locations[name]
+
+    def analyze_aliases(self, stat, context):
+        # analyze only simple assignment statements
+        if not (isinstance(stat, gcc.GimpleAssign) and len(stat.rhs) == 1):
+            return
+
+        lhs, rhs = stat.lhs, stat.rhs[0]
+        variables = context.variables
+
         if isinstance(lhs, gcc.MemRef):  # *p
-            # hardcoded
-            lname = str(lhs.operand.var) if isinstance(lhs.operand, gcc.SsaName) else str(lhs.operand)
+            llocation = self.get_location(lhs.operand, context).value.location
 
             if isinstance(rhs, gcc.AddrExpr):
                 # *p = &q
@@ -464,33 +525,24 @@ class RaceFinder(gcc.IpaPass):
                 #        ^   
                 #        |
                 # p ---> r
-                r = variables[lname].value.location
-                # hardcoded
-                rname = str(rhs.operand.var) if isinstance(rhs.operand, gcc.SsaName) else str(rhs.operand)
-                q = variables[rname]
-                r.value = Address(q)
+                rlocations = self.get_location(rhs.operand, context)
+                llocation.value = Address(rlocation)
             elif isinstance(rhs, gcc.MemRef):
                 # *p = *q
                 # q ---> b ---> c
                 #               ^
                 #               |
                 #        p ---> a
-                a = variables[lname].value.location
-                # hardcoded
-                rname = str(rhs.operand.var) if isinstance(rhs.operand, gcc.SsaName) else str(rhs.operand)
-                b = variables[rname].value.location
-                a.value = b.value
+                rlocation = self.get_location(rhs.operand, context).value.location
+                llocation.value = rlocation.value
             elif isinstance(rhs, (gcc.VarDecl, gcc.ParmDecl, gcc.SsaName)):
                 # *p = q
                 # q ---> b
                 #        ^
                 #        |
                 # p ---> r
-                r = variables[lname].value.location
-                # hardcoded
-                rname = str(rhs.var) if isinstance(rhs, gcc.SsaName) else str(rhs)
-                q = variables[rname]
-                r.value = q.value
+                rlocation = self.get_location(rhs, context)
+                llocation.value = rlocation.value
             elif isinstance(rhs, (gcc.IntegerCst, gcc.Constructor)):
                 # do nothing
                 pass
@@ -498,86 +550,73 @@ class RaceFinder(gcc.IpaPass):
                 raise Exception("Unexpected rhs: {}".format(repr(rhs)))
 
         elif isinstance(lhs, (gcc.VarDecl, gcc.ParmDecl, gcc.SsaName)):  # p
-            # hardcoded
-            lname = str(lhs.var) if isinstance(lhs, gcc.SsaName) else str(lhs)
+            llocation = self.get_location(lhs, context)
+
             if isinstance(rhs, gcc.AddrExpr):
                 # p = &q
                 # p ---> q
-                # hardcoded
-                rname = str(rhs.operand.var) if isinstance(rhs.operand, gcc.SsaName) else str(rhs.operand)
-                p = variables[lname]
-                q = variables[rname]
-                p.value = Address(q)
+                rlocation = self.get_location(rhs.operand, context)
+                llocation.value = Address(rlocation)
             elif isinstance(rhs, gcc.MemRef):
                 # p = *q
                 # q ---> a ---> b
                 #               ^
                 #               |
                 #               p
-                # hardcoded
-                rname = str(rhs.operand.var) if isinstance(rhs.operand, gcc.SsaName) else str(rhs.operand)
-                p = variables[lname]
-                q = variables[rname]
-                a = q.value.location
-                p.value = a.value
+                rlocation = self.get_location(rhs.operand, context).value.location
+                llocation.value = rlocation.value
             elif isinstance(rhs, (gcc.SsaName, gcc.VarDecl, gcc.ParmDecl)):
                 # p = q
                 # q ---> a
                 #        ^
                 #        |
                 #        p
-                # hardcoded
-                rname = str(rhs.var) if isinstance(rhs, gcc.SsaName) else str(rhs)
-                p = variables[lname]
-                q = variables[rname]
-                p.value = q.value
+                rlocation = self.get_location(rhs, context)
+                llocation.value = rlocation.value
             elif isinstance(rhs, (gcc.IntegerCst, gcc.Constructor)):
                 # nothing to do
                 pass
             else:
                 raise Exception("Unexpected rhs: {}".format(repr(rhs)))
+
         else:
             raise Exception("Unexpected lhs: {}".format(repr(lhs)))
 
-    def analyze_call(self, stat, variables, lockset, access_table):
+    def analyze_call(self, stat, context):
         fname = str(stat.fndecl)
-        if fname == 'pthread_mutex_lock':
+        if fname in ('pthread_mutex_lock', 'sem_init'):
             arg = stat.args[0]
             if isinstance(arg, gcc.AddrExpr):
-                name = str(arg.operand.var) if isinstance(arg.operand, gcc.SsaName) else str(arg.operand)
-                location = variables[name]
-                lockset.acquire(Address(location))
+                location = self.get_location(arg.operand, context)
+                context.lockset.acquire(Address(location))
             elif isinstance(arg, (gcc.SsaName, gcc.VarDecl, gcc.ParmDecl)):
-                name = str(arg.var) if isinstance(arg, gcc.SsaName) else str(arg)
-                location = variables[name]
-                lockset.acquire(location.value)
+                location = self.get_location(arg, context)
+                context.lockset.acquire(location.value)
             else:
-                raise Exception('Unexpexted argument of pthread_mutex_lock')
+                raise Exception('Unexpexted argument of {}: {}'.format(fname, repr(arg)))
         
-        elif fname == 'pthread_mutex_unlock':
+        elif fname in ('pthread_mutex_unlock', 'sem_pos'):
             arg = stat.args[0]
             if isinstance(arg, gcc.AddrExpr):
-                name = str(arg.operand.var) if isinstance(arg.operand, gcc.SsaName) else str(arg.operand)
-                location = variables[name]
-                lockset.release(Address(location))
+                location = self.get_location(arg.operand, context)
+                context.lockset.release(Address(location))
             elif isinstance(arg, (gcc.SsaName, gcc.VarDecl, gcc.ParmDecl)):
-                name = str(arg.var) if isinstance(arg, gcc.SsaName) else str(arg)
-                location = variables[name]
-                lockset.release(location.value)
+                location = self.get_location(arg, context)
+                context.lockset.release(location.value)
             else:
-                raise Exception('Unexpexted argument of pthread_mutex_unlock')
+                raise Exception('Unexpexted argument of {}: {}'.format(fname, repr(arg)))
 
         elif fname == 'pthread_create':
-            called = str(stat.args[2].operand)
-            summary = self.summaries.get(called)
+            entry = str(stat.args[2].operand)
+            summary = self.summaries.get(entry)
             if summary is None:
-                node = self.get_node_by_name(called)
+                node = self.get_node_by_name(entry)
                 if node is None:
-                    raise Exception('Create thread with unexpected function: {}'.format(called))
+                    raise Exception('Create thread with unknown function: {}'.format(entry))
                 self.analyze_node(node)
-                summary = self.summaries[called]
-            summary = self.rebindSummary(summary, [stat.args[3],], variables)
-            self.entries.append({'name': called, 'accesses': summary['accesses']})
+                summary = self.summaries[entry]
+            summary = self.rebind_summary(summary, [stat.args[3],], context.variables)
+            self.entries.append({'name': entry, 'accesses': summary.accesses})
 
         else:
             summary = self.summaries.get(fname)
@@ -588,45 +627,48 @@ class RaceFinder(gcc.IpaPass):
                     return
                 self.analyze_node(node)
                 summary = self.summaries[fname]
-            summary = self.rebindSummary(summary, stat.args, variables)
+            summary = self.rebind_summary(summary, stat.args, context)
             # update current lockset and access table
-            self.update_lockset(lockset, summary['lockset'])
-            access_table.update(summary['accesses'])
+            context.lockset.update(summary.lockset)
+            context.accesses.update(summary.accesses)
 
-    def rebindSummary(self, summary, args, variables):
+    def rebind_summary(self, summary, args, context):
         summary = copy.deepcopy(summary)
 
         # rebind guarded access table
-        for ga in summary['accesses'].accesses:
+        for ga in summary.accesses.accesses:
             if ga.access.is_formal():
                 # rebind accessed location
-                ga.access = copy.deepcopy(self.find_rebinding_location(ga.access, args, summary['formals'], variables))
+                ga.access = copy.deepcopy(self.find_rebinding_location(ga.access, args, summary.formals, context))
 
             # rebind relative lockset
-            ga.lockset = self.rebind_lockset(ga.lockset, args, summary['formals'], variables)
+            ga.lockset = self.rebind_lockset(ga.lockset, args, summary.formals, context)
 
         # rebind function relative lockset summary
-        summary['lockset'] = self.rebind_lockset(summary['lockset'], args, summary['formals'], variables)
+        summary.lockset = self.rebind_lockset(summary.lockset, args, summary.formals, context)
 
         return summary
 
-    def find_rebinding_location(self, location, args, formals, variables):
-        idx, level = self.find_parent(location, formals)
-        if idx is None or level is None:
+    def find_rebinding_location(self, location, arguments, formals, context):
+        fidx, level = self.find_parent(location, formals)
+        if fidx is None or level is None:
             raise Exception('Critical error')
 
-        arg = args[idx]
-
+        arg = arguments[fidx]
         if isinstance(arg, gcc.AddrExpr):
-            arg = arg.operand
-            vname = str(arg)
-            old_location = variables[vname]
-            new_location = Location(name=str(arg), type=PointerType(type=old_location.type), area=old_location.area, status=Location.STATUS_FAKE, visibility=old_location.visibility, value=Address(old_location))
+            old_location = self.get_location(arg.operand, context)
+            new_location = Location(
+                name=str(arg),
+                type=PointerType(type=old_location.type),
+                area=old_location.area,
+                status=Location.STATUS_FAKE,
+                visibility=old_location.visibility,
+                value=Address(old_location)
+            )
         else:
-            vname = str(arg.var) if isinstance(arg, gcc.SsaName) else str(arg)
-            new_location = variables[vname]
+            new_location = self.get_location(arg, context)
 
-        for idx in range(level):
+        for lid in range(level):
             new_location = new_location.value.location
 
         return new_location
@@ -672,10 +714,6 @@ class RaceFinder(gcc.IpaPass):
 
         return new_set
 
-    def update_lockset(self, lockset, flockset):
-        lockset.acquired = lockset.acquired.union(flockset.acquired).difference(flockset.released)
-        lockset.released = lockset.released.union(flockset.released).difference(flockset.acquired)
-
     def find_races(self):
         warnings = set()
         for idx1 in range(len(self.entries) - 1):
@@ -685,21 +723,21 @@ class RaceFinder(gcc.IpaPass):
 
     def compare_accesses(self, entry1, entry2):
         warnings = set()
-        for ga1 in entry1['accesses'].accesses:
-            for ga2 in entry2['accesses'].accesses:
+        for ga1 in entry1.accesses.accesses:
+            for ga2 in entry2.accesses.accesses:
                 if self.has_race(ga1, ga2):
-                    warnings.add(json.dumps({
-                        'variable': ga1.access.name,
-                        'visibility': ga1.access.visibility,
-                        'line': ga1.line,
-                        'function': entry1['name']
-                    }))
-                    warnings.add(json.dumps({
-                        'variable': ga2.access.name,
-                        'visibility': ga2.access.visibility,
-                        'line': ga2.line,
-                        'function': entry2['name']
-                    }))
+                    warnings.add(Warning(
+                        variable=ga1.access.name,
+                        visibility=ga1.access.visibility,
+                        function=entry1.fname,
+                        line=ga1.line
+                    ))
+                    warnings.add(Warning(
+                        variable=ga2.access.name,
+                        visibility=ga2.access.visibility,
+                        function=entry2.fname,
+                        line=ga2.line
+                    ))
         return warnings
 
     def has_race(self, ga1, ga2):

@@ -330,9 +330,6 @@ class RaceFinder(gcc.IpaPass):
 
     def analyze_node(self, node):
         fun = node.decl.function
-        self.print_info(fun)  # for debug
-        #if fun.decl.name == 'munge':
-        #    import ipdb; ipdb.set_trace()
 
         variables = self.init_variables(fun)
 
@@ -654,7 +651,6 @@ class RaceFinder(gcc.IpaPass):
     def find_rebinding_location(self, location, arguments, formals, context):
         fidx, level = self.find_parent(location, formals)
         if fidx is None or level is None:
-            import ipdb; ipdb.set_trace()
             raise Exception('Critical error')
 
         arg = arguments[fidx]
@@ -677,8 +673,6 @@ class RaceFinder(gcc.IpaPass):
         return new_location
 
     def find_parent(self, location, formals):
-        #if location.name.startswith('pcount'):
-        #    import ipdb; ipdb.set_trace()
         for idx in range(len(formals)):
             formal, level = formals[idx], 0
 
@@ -686,7 +680,7 @@ class RaceFinder(gcc.IpaPass):
                 if formal == location:
                     return idx, level
 
-                if isinstance(formal, Value):
+                if isinstance(formal, Value) or isinstance(formal.value, Value):
                     break
 
                 formal = formal.value.location

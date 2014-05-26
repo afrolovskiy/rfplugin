@@ -1,6 +1,7 @@
 from pprint import pprint
 import random
 import copy
+import time
 
 import gcc
 
@@ -132,16 +133,17 @@ class Location(object):
     STATUS_COMMON = 'common'
     STATUS_FAKE = 'fake'
 
-    def __init__(self, name, type, visibility, status, value=None):
+    def __init__(self, name, type, visibility, status, value=None, area=None):
         self.name = name
         self.type = type
         self.visibility = visibility
         self.status = status
         self.value = value
+        self.area = area
 
     def __hash__(self):
         return (hash(self.name) + 2 * hash(self.type) + 3 * hash(self.visibility) +
-                4 * hash(self.status))
+                4 * hash(self.status) + hash(self.area))
 
     def __eq__(self, other):
         return hash(self) == hash(other)
@@ -152,6 +154,7 @@ class Location(object):
             'type': self.type.to_dict(),
             'visibility': self.visibility,
             'status': self.status,
+            'area': self.area,
         }
         if with_value:
             res['value'] = self.value.to_dict() if self.value else None
@@ -175,7 +178,7 @@ class Address(object):
         self.location = location
 
     def __hash__(self):
-        return hash(self.location)
+        return 2 * hash(self.location)
 
     def __eq__(self, other):
         return hash(self) == hash(other)
@@ -215,15 +218,21 @@ class RaceFinder(gcc.IpaPass):
         self.entries = []
 
     def execute(self, *args, **kwargs):
+        start_time = time.time()
+
+        # initialize global variables
         self.global_variables = self.init_global_variables()
 
-        # calculate summaries for functions
+        # analyze functions
         for node in gcc.get_callgraph_nodes():
             if not self.is_analyzed(node):
                 self.analyze_node(node)
 
-        # find thread entry points and concretize summaries
+        # generate warnings
         self.find_races()
+
+        elapsed_time = time.time() - start_time
+        print 'Elapsed time: {} ms'.format(elapsed_time * 1000)
 
     def init_global_variables(self):
         global_variables = {}
@@ -233,20 +242,25 @@ class RaceFinder(gcc.IpaPass):
                 name, type, visibility=Location.VISIBILITY_GLOBAL)
         return global_variables
 
-    def init_variable(self, name, type, visibility=None, status=None):
+    def init_variable(self, name, type, visibility=None, status=None, area=None):
         visibility = visibility or Location.VISIBILITY_LOCAL
         status = status or Location.STATUS_COMMON
 
         if isinstance(type, gcc.PointerType):
             faked_name = '{}_fake_{}'.format(name, random.randint(*self.FAKE_RANGE))
             faked_location = self.init_variable(
-               faked_name, type.type, visibility=visibility, status=Location.STATUS_FAKE)
+               faked_name, type.type,
+               visibility=visibility,
+               status=Location.STATUS_FAKE,
+               area=area
+            )
             return Location(
                 name=name,
                 visibility=visibility,
                 status=status,
                 type=PointerType(type=faked_location.type),
-                value=Address(faked_location)
+                value=Address(faked_location),
+                area=area
             )
 
         return Location(
@@ -254,7 +268,8 @@ class RaceFinder(gcc.IpaPass):
             type=Type(name=str(type)),
             visibility=visibility,
             status=status,
-            value = Value()
+            value = Value(),
+            area=area
         )
 
     def is_analyzed(self, node):
@@ -268,11 +283,9 @@ class RaceFinder(gcc.IpaPass):
         return None
 
     def analyze_node(self, node):
-        #import ipdb; ipdb.set_trace()
-
         fun = node.decl.function
-        print '==========================================='
-        print 'Analyzed: {}'.format(node.decl.name)
+        #print '==========================================='
+        #print 'Analyzed: {}'.format(node.decl.name)
         #self.print_info(fun)
         #print '------------------------------------------'
 
@@ -298,11 +311,11 @@ class RaceFinder(gcc.IpaPass):
         #for k, v in variables.items():
         #    pprint(v.to_dict())
         #print '----------'
-        print 'lockset'
-        pprint(lockset_summary.to_dict())
-        print '---------'
-        print 'accesses:'
-        pprint(access_summary.to_dict())
+        #print 'lockset'
+        #pprint(lockset_summary.to_dict())
+        #print '---------'
+        #print 'accesses:'
+        #pprint(access_summary.to_dict())
 
         self.summaries[fun.decl.name] = {
             'lockset': lockset_summary,
@@ -310,8 +323,6 @@ class RaceFinder(gcc.IpaPass):
             'formals': [variables[str(arg)] for arg in fun.decl.arguments],
             'variables': variables,
         }
-
-        #import ipdb; ipdb.set_trace()
 
     def print_info(self, fun):
         print 'Function: {}'.format(fun.decl.name)
@@ -365,7 +376,8 @@ class RaceFinder(gcc.IpaPass):
         for decl in fun.decl.arguments:
             name, type = str(decl), decl.type 
             formal_parameters[name] = self.init_variable(
-                name, type, visibility=Location.VISIBILITY_FORMAL)
+                name, type, visibility=Location.VISIBILITY_FORMAL,
+                area=str(fun.decl))
         return formal_parameters
 
     def init_local_variables(self, fun):
@@ -373,7 +385,8 @@ class RaceFinder(gcc.IpaPass):
         for decl in fun.local_decls:
             name, type = str(decl), decl.type
             local_variables[name] = self.init_variable(
-                name, type, visibility=Location.VISIBILITY_LOCAL)
+                name, type, visibility=Location.VISIBILITY_LOCAL,
+                area=str(fun.decl))
         return local_variables
 
     def analyze_statement(self, stat, variables, lockset, access_table):
@@ -574,6 +587,7 @@ class RaceFinder(gcc.IpaPass):
                     raise Exception('Create thread with unexpected function: {}'.format(called))
                 self.analyze_node(node)
                 summary = self.summaries[called]
+            #import ipdb; ipdb.set_trace()
             summary = self.rebindSummary(summary, [stat.args[3],], variables)
             self.entries.append({'name': called, 'accesses': summary['accesses']})
 
@@ -611,24 +625,22 @@ class RaceFinder(gcc.IpaPass):
     def find_rebinding_location(self, location, args, formals, variables):
         idx, level = self.find_parent(location, formals)
         if idx is None or level is None:
-            import ipdb; ipdb.set_trace()
             raise Exception('Critical error')
 
         arg = args[idx]
 
-        need_address = False
         if isinstance(arg, gcc.AddrExpr):
-          arg = arg.operand
-          need_address = True
-          level = level - 1
+            # TODO: create fake variable
+            arg = arg.operand
+            vname = str(arg)
+            old_location = variables[vname]
+            new_location = Location(name=str(arg), type=PointerType(type=old_location.type), area=old_location.area, status=Location.STATUS_FAKE, visibility=old_location.visibility, value=Address(old_location))
+        else:
+            vname = str(arg.var) if isinstance(arg, gcc.SsaName) else str(arg)
+            new_location = variables[vname]
 
-        vname = str(arg.var) if isinstance(arg, gcc.SsaName) else str(arg)
-        new_location = variables[vname]
         for idx in range(level):
             new_location = new_location.value.location
-
-        if need_address:
-            new_location = Address(new_location)
 
         return new_location
 
@@ -683,7 +695,6 @@ class RaceFinder(gcc.IpaPass):
                 self.compare_accesses(self.entries[idx1], self.entries[idx2])
 
     def compare_accesses(self, entry1, entry2):
-        print '++++++++++++++++++++++++++++++'
         print '++++++++++++++++++++++++++++++'
         print 'Races:'
         for ga1 in entry1['accesses'].accesses:

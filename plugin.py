@@ -19,15 +19,15 @@ class ToDict(object):
     def to_dict(self):
         result = {}
         for field in self.fields:
-            value = getattr(field, self)
-            if hasattr('__iter__', value):
+            value = getattr(self, field)
+            if hasattr(value, '__iter__'):
                 result[field] = []
                 for element in value:
-                    if hasattr('to_dict', element):
+                    if hasattr(element, 'to_dict'):
                         result[field].append(element.to_dict())
                     else:
                         result[field].append(str(element))
-            elif hasattr('to_dict', value):
+            elif hasattr(value, 'to_dict'):
                 result[field] = value.to_dict()
             else:
                 result[field] = str(value)
@@ -226,7 +226,7 @@ class Warning(ToDict):
         self.variable = variable
         self.visibility = visibility
         self.function = function
-        self.line
+        self.line = line
 
     def __hash__(self):
         return (hash(self.variable) + hash(self.visibility) +
@@ -275,7 +275,7 @@ class RaceFinder(gcc.IpaPass):
             msg = ('WARNING: Race condition when accessing '
                    'the variable {variable} ({visibility}) in {function} '
                    'on line {line}')
-            print msg.format(warn.to_dict())
+            print msg.format(**warn.to_dict())
 
         elapsed_time = time.time() - start_time
         print 'Elapsed time: {} ms'.format(elapsed_time * 1000)
@@ -331,6 +331,8 @@ class RaceFinder(gcc.IpaPass):
     def analyze_node(self, node):
         fun = node.decl.function
         self.print_info(fun)  # for debug
+        #if fun.decl.name == 'munge':
+        #    import ipdb; ipdb.set_trace()
 
         variables = self.init_variables(fun)
 
@@ -615,7 +617,7 @@ class RaceFinder(gcc.IpaPass):
                     raise Exception('Create thread with unknown function: {}'.format(entry))
                 self.analyze_node(node)
                 summary = self.summaries[entry]
-            summary = self.rebind_summary(summary, [stat.args[3],], context.variables)
+            summary = self.rebind_summary(summary, [stat.args[3],], context)
             self.entries.append({'name': entry, 'accesses': summary.accesses})
 
         else:
@@ -652,6 +654,7 @@ class RaceFinder(gcc.IpaPass):
     def find_rebinding_location(self, location, arguments, formals, context):
         fidx, level = self.find_parent(location, formals)
         if fidx is None or level is None:
+            import ipdb; ipdb.set_trace()
             raise Exception('Critical error')
 
         arg = arguments[fidx]
@@ -674,6 +677,8 @@ class RaceFinder(gcc.IpaPass):
         return new_location
 
     def find_parent(self, location, formals):
+        #if location.name.startswith('pcount'):
+        #    import ipdb; ipdb.set_trace()
         for idx in range(len(formals)):
             formal, level = formals[idx], 0
 
@@ -681,10 +686,10 @@ class RaceFinder(gcc.IpaPass):
                 if formal == location:
                     return idx, level
 
-                formal = formal.value.location
-
                 if isinstance(formal, Value):
                     break
+
+                formal = formal.value.location
 
                 level = level + 1
 
@@ -723,19 +728,19 @@ class RaceFinder(gcc.IpaPass):
 
     def compare_accesses(self, entry1, entry2):
         warnings = set()
-        for ga1 in entry1.accesses.accesses:
-            for ga2 in entry2.accesses.accesses:
+        for ga1 in entry1['accesses'].accesses:
+            for ga2 in entry2['accesses'].accesses:
                 if self.has_race(ga1, ga2):
                     warnings.add(Warning(
                         variable=ga1.access.name,
                         visibility=ga1.access.visibility,
-                        function=entry1.fname,
+                        function=entry1['name'],
                         line=ga1.line
                     ))
                     warnings.add(Warning(
                         variable=ga2.access.name,
                         visibility=ga2.access.visibility,
-                        function=entry2.fname,
+                        function=entry2['name'],
                         line=ga2.line
                     ))
         return warnings

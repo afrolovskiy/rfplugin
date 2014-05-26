@@ -2,6 +2,7 @@ from pprint import pprint
 import random
 import copy
 import time
+import json
 
 import gcc
 
@@ -229,7 +230,14 @@ class RaceFinder(gcc.IpaPass):
                 self.analyze_node(node)
 
         # generate warnings
-        self.find_races()
+        warnings = self.find_races()
+
+        for warn in warnings:
+            warn = json.loads(warn)
+            msg = ('WARNING: Race condition when accessing '
+                   'the variable {variable} ({visibility}) in {function} '
+                   'on line {line}')
+            print msg.format(**warn)
 
         elapsed_time = time.time() - start_time
         print 'Elapsed time: {} ms'.format(elapsed_time * 1000)
@@ -690,22 +698,30 @@ class RaceFinder(gcc.IpaPass):
         lockset.released = lockset.released.union(flockset.released).difference(flockset.acquired)
 
     def find_races(self):
+        warnings = set()
         for idx1 in range(len(self.entries) - 1):
             for idx2 in range(idx1 + 1, len(self.entries)):
-                self.compare_accesses(self.entries[idx1], self.entries[idx2])
+                warnings = warnings.union(self.compare_accesses(self.entries[idx1], self.entries[idx2]))
+        return warnings
 
     def compare_accesses(self, entry1, entry2):
-        print '++++++++++++++++++++++++++++++'
-        print 'Races:'
+        warnings = set()
         for ga1 in entry1['accesses'].accesses:
             for ga2 in entry2['accesses'].accesses:
                 if ga1.access == ga2.access and (ga1.kind == GuardedAccess.WRITE or ga2.kind == GuardedAccess.WRITE) and len(ga1.lockset.acquired.intersection(ga2.lockset.acquired)) == 0:
-                    # TODO: replace ga1.access and ga2.access !!! now it's very  bad !!!
-                    print entry1['name']
-                    pprint(ga1.to_dict())
-                    print entry2['name']
-                    pprint(ga2.to_dict())
-                    print '-----------------'
+                    warnings.add(json.dumps({
+                        'variable': ga1.access.name,
+                        'visibility': ga1.access.visibility,
+                        'line': ga1.line,
+                        'function': entry1['name']
+                    }))
+                    warnings.add(json.dumps({
+                        'variable': ga2.access.name,
+                        'visibility': ga2.access.visibility,
+                        'line': ga2.line,
+                        'function': entry2['name']
+                    }))
+        return warnings
 
 
 ps = RaceFinder(name='race-finder')

@@ -220,17 +220,16 @@ class PathContext(object):
 
 
 class Warning(ToDict):
-    fields = ('variable', 'visibility', 'function', 'line')
+    fields = ('variable', 'visibility', 'line')
 
-    def __init__(self, variable, visibility, function, line):
+    def __init__(self, variable, visibility, line):
         self.variable = variable
         self.visibility = visibility
-        self.function = function
         self.line = line
 
     def __hash__(self):
         return (hash(self.variable) + hash(self.visibility) +
-                hash(self.function) + hash(self.line))
+                hash(self.line))
 
     def __eq__(self, other):
         return hash(self) == hash(other)
@@ -273,7 +272,7 @@ class RaceFinder(gcc.IpaPass):
 
         for warn in warnings:
             msg = ('WARNING: Race condition when accessing '
-                   'the variable {variable} ({visibility}) in {function} '
+                   'the variable {variable} ({visibility}) '
                    'on line {line}')
             print msg.format(**warn.to_dict())
 
@@ -728,13 +727,11 @@ class RaceFinder(gcc.IpaPass):
                     warnings.add(Warning(
                         variable=ga1.access.name,
                         visibility=ga1.access.visibility,
-                        function=entry1['name'],
                         line=ga1.line
                     ))
                     warnings.add(Warning(
                         variable=ga2.access.name,
                         visibility=ga2.access.visibility,
-                        function=entry2['name'],
                         line=ga2.line
                     ))
         return warnings

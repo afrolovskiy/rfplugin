@@ -5,92 +5,97 @@ pthread_t thread1, thread2, thread3, thread4, thread5;
 int fork1, fork2, fork3, fork4, fork5;
 
 void* philosopher1(void* args) {
-	pthread_mutex_lock(&fork1_mutex);
-        fork1 = 1;
+        while(1) {
+		pthread_mutex_lock(&fork1_mutex);
+	        fork1 = 1;
 
-	pthread_mutex_lock(&fork2_mutex);
-        fork2 = 1;
+		pthread_mutex_lock(&fork2_mutex);
+	        fork2 = 1;
 
-	sleep(1); // eat
+		sleep(1); // eat
 
-        fork2 = 0;
-	pthread_mutex_lock(&fork2_mutex);
+	        fork2 = 0;
+		pthread_mutex_lock(&fork2_mutex);
 
-        fork1 = 0;
-	pthread_mutex_lock(&fork1_mutex);
-
+	        fork1 = 0;
+		pthread_mutex_lock(&fork1_mutex);
+	}
 	return NULL;
 }
 
 void* philosopher2(void* args) {
-	pthread_mutex_lock(&fork2_mutex);
-        fork2 = 1;
+	while(1) {
+		pthread_mutex_lock(&fork2_mutex);
+        	fork2 = 1;
 
-	pthread_mutex_lock(&fork3_mutex);
-        fork3 = 1;
+		pthread_mutex_lock(&fork3_mutex);
+	        fork3 = 1;
 
-	sleep(1); // eat
+		sleep(1); // eat
 
-        fork3 = 0;
-	pthread_mutex_lock(&fork3_mutex);
+	        fork3 = 0;
+		pthread_mutex_lock(&fork3_mutex);
 
-        fork2 = 0;
-	pthread_mutex_lock(&fork2_mutex);
-
+	        fork2 = 0;
+		pthread_mutex_lock(&fork2_mutex);
+	}
 	return NULL;
 }
 
 void* philosopher3(void* args) {
-	pthread_mutex_lock(&fork3_mutex);
-        fork3 = 1;
+	while(1) {
+		pthread_mutex_lock(&fork3_mutex);
+	        fork3 = 1;
 
-	pthread_mutex_lock(&fork4_mutex);
-        fork4 = 1;
+		pthread_mutex_lock(&fork4_mutex);
+	        fork4 = 1;
 
-	sleep(1); // eat
+		sleep(1); // eat
 
-        fork4 = 0;
- 	pthread_mutex_lock(&fork4_mutex);
+	        fork4 = 0;
+	 	pthread_mutex_lock(&fork4_mutex);
 
-        fork3 = 0;
-	pthread_mutex_lock(&fork3_mutex);
-
+	        fork3 = 0;
+		pthread_mutex_lock(&fork3_mutex);
+	}
 	return NULL;
 }
 
 void* philosopher4(void* args) {
-	pthread_mutex_lock(&fork4_mutex);
-        fork4 = 1;
+	while (1) {
+		pthread_mutex_lock(&fork4_mutex);
+        	fork4 = 1;
 
-	pthread_mutex_lock(&fork5_mutex);
-        fork5 = 1;
+		pthread_mutex_lock(&fork5_mutex);
+	        fork5 = 1;
 
-	sleep(1); // eat
+		sleep(1); // eat
 
-        fork5 = 0;
-	pthread_mutex_lock(&fork5_mutex);
+	        fork5 = 0;
+		pthread_mutex_lock(&fork5_mutex);
 
-        fork4 = 0;
-	pthread_mutex_lock(&fork4_mutex);
-
+	        fork4 = 0;
+		pthread_mutex_lock(&fork4_mutex);
+	}
 	return NULL;
 }
 
 void* philosopher5(void* args) {
-	pthread_mutex_lock(&fork1_mutex);
-        fork1 = 1;
+	while (1) {
+		pthread_mutex_lock(&fork1_mutex);
+	        fork1 = 1;
 
-	pthread_mutex_lock(&fork5_mutex);
-        fork5 = 1;
+		pthread_mutex_lock(&fork5_mutex);
+	        fork5 = 1;
 
-	sleep(1); // eat
+		sleep(1); // eat
 
-        fork5 = 0;
-	pthread_mutex_lock(&fork5_mutex);
+	        fork5 = 0;
+		pthread_mutex_lock(&fork5_mutex);
 
-        fork1 = 0;
-	pthread_mutex_lock(&fork1_mutex);
-
+	        fork1 = 0;
+		pthread_mutex_lock(&fork1_mutex);
+	}
 	return NULL;
 }
 

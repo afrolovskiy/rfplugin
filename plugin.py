@@ -390,7 +390,8 @@ class RaceFinder(gcc.IpaPass):
     def build_pathes(self, fun):
         def walk(block, path):
             if count_repetitions(path, block) > self.MAX_LEVEL:
-                return []
+                path.append(fun.cfg.exit)  # for avoid forever loop
+                return [path]
 
             path.append(block)
 

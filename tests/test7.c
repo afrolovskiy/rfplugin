@@ -1,59 +1,58 @@
 #include <pthread.h>
 
-pthread_mutex_t fork1, fork2, fork3, fork4, fork5;
+pthread_mutex_t fork1_mutex, fork2_mutex, fork3_mutex, fork4_mutex, fork5_mutex;
 pthread_t thread1, thread2, thread3, thread4, thread5;
+int fork1, fork2, fork3, fork4, fork5;
+
+void philosopher(pthread_mutex_t* mutex1, int* fork1, pthread_mutex_t* mutex2, int* fork2) {
+        while (1) {
+		pthread_mutex_lock(mutex1);
+		*fork1 = 1;
+
+		pthread_mutex_lock(mutex2);
+		*fork2 = 1;
+
+        	sleep(1); // eat
+
+		*fork2 = 0;
+		pthread_mutex_lock(mutex2);
+
+		*fork1 = 0;
+		pthread_mutex_lock(mutex1);
+	}
+}
 
 void* philosopher1(void* args) {
-	pthread_mutex_lock(&fork1);
-	pthread_mutex_lock(&fork2);
-	sleep(1); // eat
-	pthread_mutex_lock(&fork2);
-	pthread_mutex_lock(&fork1);
+	philosopher(&fork1_mutex, &fork1, &fork2_mutex, &fork2);
 	return NULL;
 }
 
 void* philosopher2(void* args) {
-	pthread_mutex_lock(&fork2);
-	pthread_mutex_lock(&fork3);
-	sleep(1); // eat
-	pthread_mutex_lock(&fork3);
-	pthread_mutex_lock(&fork2);
+	philosopher(&fork2_mutex, &fork2, &fork3_mutex, &fork3);
 	return NULL;
 }
 
 void* philosopher3(void* args) {
-	pthread_mutex_lock(&fork3);
-	pthread_mutex_lock(&fork4);
-	sleep(1); // eat
-	pthread_mutex_lock(&fork4);
-	pthread_mutex_lock(&fork3);
+	philosopher(&fork3_mutex, &fork3, &fork4_mutex, &fork4);
 	return NULL;
 }
 
 void* philosopher4(void* args) {
-	pthread_mutex_lock(&fork4);
-	pthread_mutex_lock(&fork5);
-	sleep(1); // eat
-	pthread_mutex_lock(&fork5);
-	pthread_mutex_lock(&fork4);
+	philosopher(&fork4_mutex, &fork4, &fork5_mutex, &fork5);
 	return NULL;
 }
 
 void* philosopher5(void* args) {
-	pthread_mutex_lock(&fork1);
-	pthread_mutex_lock(&fork5);
-	sleep(1); // eat
-	pthread_mutex_lock(&fork5);
-	pthread_mutex_lock(&fork1);
+	philosopher(&fork1_mutex, &fork1, &fork5_mutex, &fork5);
 	return NULL;
 }
 
 int main(int argc, char** argv) {
-	pthread_mutex_init(&fork1, NULL);
-	pthread_mutex_init(&fork2, NULL);
-	pthread_mutex_init(&fork3, NULL);
-	pthread_mutex_init(&fork4, NULL);
-	pthread_mutex_init(&fork5, NULL);
+	pthread_mutex_init(&fork1_mutex, NULL);
+	pthread_mutex_init(&fork2_mutex, NULL);
+	pthread_mutex_init(&fork3_mutex, NULL);
+	pthread_mutex_init(&fork4_mutex, NULL);
+	pthread_mutex_init(&fork5_mutex, NULL);
 
 	pthread_create(&thread1, NULL, philosopher1, NULL);
 	pthread_create(&thread2, NULL, philosopher2, NULL);

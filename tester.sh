@@ -1,7 +1,7 @@
 #!/bin/bash
-REPEAT=5
+REPEAT=10
 #FILES='test1.c test2.c test3.c test4.c test5.c test6.c test7.c test8.c test9.c test10.c'
-FILES='test11_2.c test11_4.c test11_6.c test11_8.c test11_10.c test11_12.c'
+FILES='test11_10.c'
 
 for fname in $FILES
 do
@@ -12,7 +12,7 @@ do
 		echo 'with main: '$with_main
                 export WITH_MAIN=$with_main
 
-		for max_level in 1 2 3
+		for max_level in 1 2 3 4
 		do
 			echo 'max level: '$max_level
 			export MAX_LEVEL=$max_level
@@ -25,6 +25,7 @@ do
 				echo 'iteration: '$i
 				./gcc-pyplugin plugin.py tests/$fname -lpthread  >> $out
 			done
+			echo 'Mean time('$fname','$with_main','$max_level'): '`less $out  | grep 'Elapsed' | cut -d\  -f3 | python -c "import sys;lines=[line for line in sys.stdin];print sum([float(line) for line in lines])/len(lines);"`
 		done
 	done
 done

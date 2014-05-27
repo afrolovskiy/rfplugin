@@ -268,7 +268,7 @@ class RaceFinder(gcc.IpaPass):
         self.global_variables = {}
         self.entries = []
         self.path_count = 0
-        self.MAX_LEVEL = gcc.argument_dict.get('max-level', 3)
+        self.MAX_LEVEL = int(gcc.argument_dict.get('max-level', 3))
 
     def execute(self, *args, **kwargs):
         start_time = time.time()
@@ -634,6 +634,7 @@ class RaceFinder(gcc.IpaPass):
                 node = self.get_node_by_name(entry)
                 if node is None:
                     raise Exception('Create thread with unknown function: {}'.format(entry))
+                import ipdb; ipdb.set_trace()
                 self.analyze_node(node)
                 summary = self.summaries[entry]
             summary = self.rebind_summary(summary, [stat.args[3],], context)

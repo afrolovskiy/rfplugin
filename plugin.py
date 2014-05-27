@@ -475,6 +475,7 @@ class RaceFinder(gcc.IpaPass):
             # analyze left and right side of compare expression
             self.analyze_value(stat.lhs, stat, context, GuardedAccess.READ)
             self.analyze_value(stat.lhs, stat, context, GuardedAccess.READ)
+            self.analyze_value(stat.lhs, stat, context, GuardedAccess.READ)
             self.analyze_value(stat.rhs, stat, context, GuardedAccess.READ)
 
         elif isinstance(stat, gcc.GimpleLabel):
@@ -756,6 +757,7 @@ class RaceFinder(gcc.IpaPass):
             for ga2 in entry2.accesses:
                 if self.has_race(ga1, ga2):
                     warnings.add(Warning(
+                        variable=ga1.access.name,
                         visibility=ga1.access.visibility,
                         line=ga1.line
                     ))

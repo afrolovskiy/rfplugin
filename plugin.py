@@ -248,13 +248,14 @@ class FunctionSummary(ToDict):
 
 class RaceFinder(gcc.IpaPass):
     FAKE_RANGE = (0, 10000)
-    MAX_LEVEL = 4
 
     def __init__(self, *args, **kwargs):
         super(RaceFinder, self).__init__(*args, **kwargs)
         self.summaries = {}
         self.global_variables = {}
         self.entries = []
+        self.path_count = 0
+        self.MAX_LEVEL = gcc.argument_dict.get('max-level', 3)
 
     def execute(self, *args, **kwargs):
         start_time = time.time()
@@ -278,6 +279,8 @@ class RaceFinder(gcc.IpaPass):
 
         elapsed_time = time.time() - start_time
         print 'Elapsed time: {} ms'.format(elapsed_time * 1000)
+        print 'Analyzed path count: {}'.format(self.path_count)
+        print 'Max basic block repetition in path: {}'.format(self.MAX_LEVEL)
 
     def init_global_variables(self):
         global_variables = {}
@@ -335,6 +338,7 @@ class RaceFinder(gcc.IpaPass):
         lockset_summary, access_summary = None, None
 
         pathes = self.build_pathes(fun)
+        self.path_count += len(pathes)
         for path in pathes:
             lockset, access_table = self.analyze_path(fun, path, copy.deepcopy(variables))
 
@@ -366,7 +370,7 @@ class RaceFinder(gcc.IpaPass):
 
     def build_pathes(self, fun):
         def walk(block, path):
-            if count_repetitions(path, block) > RaceFinder.MAX_LEVEL:
+            if count_repetitions(path, block) > self.MAX_LEVEL:
                 return []
 
             path.append(block)

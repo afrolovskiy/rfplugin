@@ -116,6 +116,10 @@ class GuardedAccessTable(object):
     def update(self, table):
         self.accesses.update(table.accesses)
 
+    def __iter__(self):
+        for access in self.accesses:
+            yield access
+
 
 class Type(ToDict):
     fields = ('name',)
@@ -244,6 +248,15 @@ class FunctionSummary(ToDict):
         self.accesses = accesses
         self.formals = formals
         self.variables = variables
+
+
+class ThreadEntry(ToDict):
+    fields = ('functions', 'line', 'accesses')
+
+    def __init__(self, accesses, line, function):
+        self.accesses = accesses
+        self.line = line
+        self.function = function
 
 
 class RaceFinder(gcc.IpaPass):
@@ -618,7 +631,7 @@ class RaceFinder(gcc.IpaPass):
                 self.analyze_node(node)
                 summary = self.summaries[entry]
             summary = self.rebind_summary(summary, [stat.args[3],], context)
-            self.entries.append({'name': entry, 'accesses': summary.accesses})
+            self.entries.append(ThreadEntry(function=entry, line=stat.loc.line, accesses=summary.accesses))
 
         else:
             summary = self.summaries.get(fname)
@@ -725,8 +738,8 @@ class RaceFinder(gcc.IpaPass):
 
     def compare_accesses(self, entry1, entry2):
         warnings = set()
-        for ga1 in entry1['accesses'].accesses:
-            for ga2 in entry2['accesses'].accesses:
+        for ga1 in entry1.accesses:
+            for ga2 in entry2.accesses:
                 if self.has_race(ga1, ga2):
                     warnings.add(Warning(
                         variable=ga1.access.name,

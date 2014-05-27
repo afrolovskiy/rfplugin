@@ -390,7 +390,7 @@ class RaceFinder(gcc.IpaPass):
     def build_pathes(self, fun):
         def walk(block, path):
             if count_repetitions(path, block) > self.MAX_LEVEL:
-                path.append(fun.cfg.exit)  # for avoid forever loop
+                path.append(fun.cfg.exit)  # for 
                 return [path]
 
             path.append(block)
@@ -473,6 +473,7 @@ class RaceFinder(gcc.IpaPass):
         elif (isinstance(stat, gcc.GimpleCond) and stat.exprcode in
                 (gcc.EqExpr, gcc.NeExpr, gcc.LeExpr, gcc.LtExpr, gcc.GeExpr, gcc.GtExpr,)):
             # analyze left and right side of compare expression
+            self.analyze_value(stat.lhs, stat, context, GuardedAccess.READ)
             self.analyze_value(stat.lhs, stat, context, GuardedAccess.READ)
             self.analyze_value(stat.rhs, stat, context, GuardedAccess.READ)
 
@@ -635,7 +636,6 @@ class RaceFinder(gcc.IpaPass):
                 node = self.get_node_by_name(entry)
                 if node is None:
                     raise Exception('Create thread with unknown function: {}'.format(entry))
-                import ipdb; ipdb.set_trace()
                 self.analyze_node(node)
                 summary = self.summaries[entry]
             summary = self.rebind_summary(summary, [stat.args[3],], context)
@@ -756,7 +756,6 @@ class RaceFinder(gcc.IpaPass):
             for ga2 in entry2.accesses:
                 if self.has_race(ga1, ga2):
                     warnings.add(Warning(
-                        variable=ga1.access.name,
                         visibility=ga1.access.visibility,
                         line=ga1.line
                     ))

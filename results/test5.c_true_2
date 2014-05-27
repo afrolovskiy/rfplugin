@@ -1,0 +1,100 @@
+WARNING: Race condition when accessing the variable count (global) on line 13
+WARNING: Race condition when accessing the variable count (global) on line 15
+WARNING: Race condition when accessing the variable count (global) on line 36
+-----------------------------------------------------
+Elapsed time: 138.299942017 ms
+Analyzed path count: 6
+Processed instructions count: 54
+Max basic block repetition in path: 2
+Thread entry points: 3
+Analyzed "main" function: True
+WARNING: Race condition when accessing the variable count (global) on line 13
+WARNING: Race condition when accessing the variable count (global) on line 15
+WARNING: Race condition when accessing the variable count (global) on line 36
+-----------------------------------------------------
+Elapsed time: 125.061035156 ms
+Analyzed path count: 6
+Processed instructions count: 54
+Max basic block repetition in path: 2
+Thread entry points: 3
+Analyzed "main" function: True
+WARNING: Race condition when accessing the variable count (global) on line 13
+WARNING: Race condition when accessing the variable count (global) on line 15
+WARNING: Race condition when accessing the variable count (global) on line 36
+-----------------------------------------------------
+Elapsed time: 130.745172501 ms
+Analyzed path count: 6
+Processed instructions count: 54
+Max basic block repetition in path: 2
+Thread entry points: 3
+Analyzed "main" function: True
+WARNING: Race condition when accessing the variable count (global) on line 13
+WARNING: Race condition when accessing the variable count (global) on line 15
+WARNING: Race condition when accessing the variable count (global) on line 36
+-----------------------------------------------------
+Elapsed time: 124.511957169 ms
+Analyzed path count: 6
+Processed instructions count: 54
+Max basic block repetition in path: 2
+Thread entry points: 3
+Analyzed "main" function: True
+WARNING: Race condition when accessing the variable count (global) on line 13
+WARNING: Race condition when accessing the variable count (global) on line 15
+WARNING: Race condition when accessing the variable count (global) on line 36
+-----------------------------------------------------
+Elapsed time: 125.358104706 ms
+Analyzed path count: 6
+Processed instructions count: 54
+Max basic block repetition in path: 2
+Thread entry points: 3
+Analyzed "main" function: True
+WARNING: Race condition when accessing the variable count (global) on line 13
+WARNING: Race condition when accessing the variable count (global) on line 15
+WARNING: Race condition when accessing the variable count (global) on line 36
+-----------------------------------------------------
+Elapsed time: 146.888971329 ms
+Analyzed path count: 6
+Processed instructions count: 54
+Max basic block repetition in path: 2
+Thread entry points: 3
+Analyzed "main" function: True
+WARNING: Race condition when accessing the variable count (global) on line 13
+WARNING: Race condition when accessing the variable count (global) on line 15
+WARNING: Race condition when accessing the variable count (global) on line 36
+-----------------------------------------------------
+Elapsed time: 138.500213623 ms
+Analyzed path count: 6
+Processed instructions count: 54
+Max basic block repetition in path: 2
+Thread entry points: 3
+Analyzed "main" function: True
+WARNING: Race condition when accessing the variable count (global) on line 13
+WARNING: Race condition when accessing the variable count (global) on line 15
+WARNING: Race condition when accessing the variable count (global) on line 36
+-----------------------------------------------------
+Elapsed time: 127.489089966 ms
+Analyzed path count: 6
+Processed instructions count: 54
+Max basic block repetition in path: 2
+Thread entry points: 3
+Analyzed "main" function: True
+WARNING: Race condition when accessing the variable count (global) on line 13
+WARNING: Race condition when accessing the variable count (global) on line 15
+WARNING: Race condition when accessing the variable count (global) on line 36
+-----------------------------------------------------
+Elapsed time: 124.017953873 ms
+Analyzed path count: 6
+Processed instructions count: 54
+Max basic block repetition in path: 2
+Thread entry points: 3
+Analyzed "main" function: True
+WARNING: Race condition when accessing the variable count (global) on line 13
+WARNING: Race condition when accessing the variable count (global) on line 15
+WARNING: Race condition when accessing the variable count (global) on line 36
+-----------------------------------------------------
+Elapsed time: 127.835035324 ms
+Analyzed path count: 6
+Processed instructions count: 54
+Max basic block repetition in path: 2
+Thread entry points: 3
+Analyzed "main" function: True

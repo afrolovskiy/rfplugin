@@ -1,6 +1,7 @@
 #!/bin/bash
-REPEAT=10
-FILES='test1.c test2.c test3.c test4.c test5.c test6.c test7.c test8.c test9.c test10.c'
+REPEAT=5
+#FILES='test1.c test2.c test3.c test4.c test5.c test6.c test7.c test8.c test9.c test10.c'
+FILES='test9.c'
 
 for fname in $FILES
 do
@@ -11,7 +12,7 @@ do
 		echo 'with main: '$with_main
                 export WITH_MAIN=$with_main
 
-		for max_level in 1 2 3 4 5
+		for max_level in 1 2 3 4 5 6 7 8 9
 		do
 			echo 'max level: '$max_level
 			export MAX_LEVEL=$max_level

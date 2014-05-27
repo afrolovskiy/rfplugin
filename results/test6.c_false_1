@@ -1,0 +1,80 @@
+WARNING: Race condition when accessing the variable y (global) on line 9
+-----------------------------------------------------
+Elapsed time: 228.82604599 ms
+Analyzed path count: 5
+Processed instructions count: 35
+Max basic block repetition in path: 1
+Thread entry points: 3
+Analyzed "main" function: False
+WARNING: Race condition when accessing the variable y (global) on line 9
+-----------------------------------------------------
+Elapsed time: 182.122945786 ms
+Analyzed path count: 5
+Processed instructions count: 35
+Max basic block repetition in path: 1
+Thread entry points: 3
+Analyzed "main" function: False
+WARNING: Race condition when accessing the variable y (global) on line 9
+-----------------------------------------------------
+Elapsed time: 209.244012833 ms
+Analyzed path count: 5
+Processed instructions count: 35
+Max basic block repetition in path: 1
+Thread entry points: 3
+Analyzed "main" function: False
+WARNING: Race condition when accessing the variable y (global) on line 9
+-----------------------------------------------------
+Elapsed time: 254.025936127 ms
+Analyzed path count: 5
+Processed instructions count: 35
+Max basic block repetition in path: 1
+Thread entry points: 3
+Analyzed "main" function: False
+WARNING: Race condition when accessing the variable y (global) on line 9
+-----------------------------------------------------
+Elapsed time: 196.009874344 ms
+Analyzed path count: 5
+Processed instructions count: 35
+Max basic block repetition in path: 1
+Thread entry points: 3
+Analyzed "main" function: False
+WARNING: Race condition when accessing the variable y (global) on line 9
+-----------------------------------------------------
+Elapsed time: 205.677032471 ms
+Analyzed path count: 5
+Processed instructions count: 35
+Max basic block repetition in path: 1
+Thread entry points: 3
+Analyzed "main" function: False
+WARNING: Race condition when accessing the variable y (global) on line 9
+-----------------------------------------------------
+Elapsed time: 172.930002213 ms
+Analyzed path count: 5
+Processed instructions count: 35
+Max basic block repetition in path: 1
+Thread entry points: 3
+Analyzed "main" function: False
+WARNING: Race condition when accessing the variable y (global) on line 9
+-----------------------------------------------------
+Elapsed time: 190.819978714 ms
+Analyzed path count: 5
+Processed instructions count: 35
+Max basic block repetition in path: 1
+Thread entry points: 3
+Analyzed "main" function: False
+WARNING: Race condition when accessing the variable y (global) on line 9
+-----------------------------------------------------
+Elapsed time: 182.174921036 ms
+Analyzed path count: 5
+Processed instructions count: 35
+Max basic block repetition in path: 1
+Thread entry points: 3
+Analyzed "main" function: False
+WARNING: Race condition when accessing the variable y (global) on line 9
+-----------------------------------------------------
+Elapsed time: 168.226957321 ms
+Analyzed path count: 5
+Processed instructions count: 35
+Max basic block repetition in path: 1
+Thread entry points: 3
+Analyzed "main" function: False

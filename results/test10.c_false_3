@@ -1,0 +1,80 @@
+OK
+-----------------------------------------------------
+Elapsed time: 160.788059235 ms
+Analyzed path count: 6
+Processed instructions count: 101
+Max basic block repetition in path: 3
+Thread entry points: 2
+Analyzed "main" function: False
+OK
+-----------------------------------------------------
+Elapsed time: 168.334007263 ms
+Analyzed path count: 6
+Processed instructions count: 101
+Max basic block repetition in path: 3
+Thread entry points: 2
+Analyzed "main" function: False
+OK
+-----------------------------------------------------
+Elapsed time: 164.006948471 ms
+Analyzed path count: 6
+Processed instructions count: 101
+Max basic block repetition in path: 3
+Thread entry points: 2
+Analyzed "main" function: False
+OK
+-----------------------------------------------------
+Elapsed time: 162.209033966 ms
+Analyzed path count: 6
+Processed instructions count: 101
+Max basic block repetition in path: 3
+Thread entry points: 2
+Analyzed "main" function: False
+OK
+-----------------------------------------------------
+Elapsed time: 170.165061951 ms
+Analyzed path count: 6
+Processed instructions count: 101
+Max basic block repetition in path: 3
+Thread entry points: 2
+Analyzed "main" function: False
+OK
+-----------------------------------------------------
+Elapsed time: 176.117181778 ms
+Analyzed path count: 6
+Processed instructions count: 101
+Max basic block repetition in path: 3
+Thread entry points: 2
+Analyzed "main" function: False
+OK
+-----------------------------------------------------
+Elapsed time: 166.246175766 ms
+Analyzed path count: 6
+Processed instructions count: 101
+Max basic block repetition in path: 3
+Thread entry points: 2
+Analyzed "main" function: False
+OK
+-----------------------------------------------------
+Elapsed time: 152.964115143 ms
+Analyzed path count: 6
+Processed instructions count: 101
+Max basic block repetition in path: 3
+Thread entry points: 2
+Analyzed "main" function: False
+OK
+-----------------------------------------------------
+Elapsed time: 172.319889069 ms
+Analyzed path count: 6
+Processed instructions count: 101
+Max basic block repetition in path: 3
+Thread entry points: 2
+Analyzed "main" function: False
+OK
+-----------------------------------------------------
+Elapsed time: 168.137073517 ms
+Analyzed path count: 6
+Processed instructions count: 101
+Max basic block repetition in path: 3
+Thread entry points: 2
+Analyzed "main" function: False

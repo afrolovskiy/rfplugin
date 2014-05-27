@@ -1,0 +1,220 @@
+WARNING: Race condition when accessing the variable y (global) on line 31
+WARNING: Race condition when accessing the variable x (global) on line 30
+WARNING: Race condition when accessing the variable y (global) on line 9
+WARNING: Race condition when accessing the variable x (global) on line 9
+-----------------------------------------------------
+Elapsed time: 112.338066101 ms
+Analyzed path count: 4
+Processed instructions count: 27
+Max basic block repetition in path: 1
+Thread entry points: 3
+Analyzed "main" function: True
+WARNING: Race condition when accessing the variable y (global) on line 31
+WARNING: Race condition when accessing the variable x (global) on line 30
+WARNING: Race condition when accessing the variable y (global) on line 9
+WARNING: Race condition when accessing the variable x (global) on line 9
+-----------------------------------------------------
+Elapsed time: 132.702827454 ms
+Analyzed path count: 4
+Processed instructions count: 27
+Max basic block repetition in path: 1
+Thread entry points: 3
+Analyzed "main" function: True
+WARNING: Race condition when accessing the variable y (global) on line 31
+WARNING: Race condition when accessing the variable x (global) on line 30
+WARNING: Race condition when accessing the variable y (global) on line 9
+WARNING: Race condition when accessing the variable x (global) on line 9
+-----------------------------------------------------
+Elapsed time: 129.795074463 ms
+Analyzed path count: 4
+Processed instructions count: 27
+Max basic block repetition in path: 1
+Thread entry points: 3
+Analyzed "main" function: True
+WARNING: Race condition when accessing the variable y (global) on line 31
+WARNING: Race condition when accessing the variable x (global) on line 30
+WARNING: Race condition when accessing the variable y (global) on line 9
+WARNING: Race condition when accessing the variable x (global) on line 9
+-----------------------------------------------------
+Elapsed time: 119.129896164 ms
+Analyzed path count: 4
+Processed instructions count: 27
+Max basic block repetition in path: 1
+Thread entry points: 3
+Analyzed "main" function: True
+WARNING: Race condition when accessing the variable y (global) on line 31
+WARNING: Race condition when accessing the variable x (global) on line 30
+WARNING: Race condition when accessing the variable y (global) on line 9
+WARNING: Race condition when accessing the variable x (global) on line 9
+-----------------------------------------------------
+Elapsed time: 109.851121902 ms
+Analyzed path count: 4
+Processed instructions count: 27
+Max basic block repetition in path: 1
+Thread entry points: 3
+Analyzed "main" function: True
+WARNING: Race condition when accessing the variable y (global) on line 31
+WARNING: Race condition when accessing the variable x (global) on line 30
+WARNING: Race condition when accessing the variable y (global) on line 9
+WARNING: Race condition when accessing the variable x (global) on line 9
+-----------------------------------------------------
+Elapsed time: 107.129096985 ms
+Analyzed path count: 4
+Processed instructions count: 27
+Max basic block repetition in path: 1
+Thread entry points: 3
+Analyzed "main" function: True
+WARNING: Race condition when accessing the variable y (global) on line 31
+WARNING: Race condition when accessing the variable x (global) on line 30
+WARNING: Race condition when accessing the variable y (global) on line 9
+WARNING: Race condition when accessing the variable x (global) on line 9
+-----------------------------------------------------
+Elapsed time: 141.518115997 ms
+Analyzed path count: 4
+Processed instructions count: 27
+Max basic block repetition in path: 1
+Thread entry points: 3
+Analyzed "main" function: True
+WARNING: Race condition when accessing the variable y (global) on line 31
+WARNING: Race condition when accessing the variable x (global) on line 30
+WARNING: Race condition when accessing the variable y (global) on line 9
+WARNING: Race condition when accessing the variable x (global) on line 9
+-----------------------------------------------------
+Elapsed time: 102.89812088 ms
+Analyzed path count: 4
+Processed instructions count: 27
+Max basic block repetition in path: 1
+Thread entry points: 3
+Analyzed "main" function: True
+WARNING: Race condition when accessing the variable y (global) on line 31
+WARNING: Race condition when accessing the variable x (global) on line 30
+WARNING: Race condition when accessing the variable y (global) on line 9
+WARNING: Race condition when accessing the variable x (global) on line 9
+-----------------------------------------------------
+Elapsed time: 127.519130707 ms
+Analyzed path count: 4
+Processed instructions count: 27
+Max basic block repetition in path: 1
+Thread entry points: 3
+Analyzed "main" function: True
+WARNING: Race condition when accessing the variable y (global) on line 31
+WARNING: Race condition when accessing the variable x (global) on line 30
+WARNING: Race condition when accessing the variable y (global) on line 9
+WARNING: Race condition when accessing the variable x (global) on line 9
+-----------------------------------------------------
+Elapsed time: 120.419979095 ms
+Analyzed path count: 4
+Processed instructions count: 27
+Max basic block repetition in path: 1
+Thread entry points: 3
+Analyzed "main" function: True
+WARNING: Race condition when accessing the variable y (global) on line 31
+WARNING: Race condition when accessing the variable x (global) on line 30
+WARNING: Race condition when accessing the variable y (global) on line 9
+WARNING: Race condition when accessing the variable x (global) on line 9
+-----------------------------------------------------
+Elapsed time: 103.98888588 ms
+Analyzed path count: 4
+Processed instructions count: 27
+Max basic block repetition in path: 1
+Thread entry points: 3
+Analyzed "main" function: True
+WARNING: Race condition when accessing the variable y (global) on line 31
+WARNING: Race condition when accessing the variable x (global) on line 30
+WARNING: Race condition when accessing the variable y (global) on line 9
+WARNING: Race condition when accessing the variable x (global) on line 9
+-----------------------------------------------------
+Elapsed time: 111.134052277 ms
+Analyzed path count: 4
+Processed instructions count: 27
+Max basic block repetition in path: 1
+Thread entry points: 3
+Analyzed "main" function: True
+WARNING: Race condition when accessing the variable y (global) on line 31
+WARNING: Race condition when accessing the variable x (global) on line 30
+WARNING: Race condition when accessing the variable y (global) on line 9
+WARNING: Race condition when accessing the variable x (global) on line 9
+-----------------------------------------------------
+Elapsed time: 129.035949707 ms
+Analyzed path count: 4
+Processed instructions count: 27
+Max basic block repetition in path: 1
+Thread entry points: 3
+Analyzed "main" function: True
+WARNING: Race condition when accessing the variable y (global) on line 31
+WARNING: Race condition when accessing the variable x (global) on line 30
+WARNING: Race condition when accessing the variable y (global) on line 9
+WARNING: Race condition when accessing the variable x (global) on line 9
+-----------------------------------------------------
+Elapsed time: 127.723932266 ms
+Analyzed path count: 4
+Processed instructions count: 27
+Max basic block repetition in path: 1
+Thread entry points: 3
+Analyzed "main" function: True
+WARNING: Race condition when accessing the variable y (global) on line 31
+WARNING: Race condition when accessing the variable x (global) on line 30
+WARNING: Race condition when accessing the variable y (global) on line 9
+WARNING: Race condition when accessing the variable x (global) on line 9
+-----------------------------------------------------
+Elapsed time: 126.778125763 ms
+Analyzed path count: 4
+Processed instructions count: 27
+Max basic block repetition in path: 1
+Thread entry points: 3
+Analyzed "main" function: True
+WARNING: Race condition when accessing the variable y (global) on line 31
+WARNING: Race condition when accessing the variable x (global) on line 30
+WARNING: Race condition when accessing the variable y (global) on line 9
+WARNING: Race condition when accessing the variable x (global) on line 9
+-----------------------------------------------------
+Elapsed time: 112.488031387 ms
+Analyzed path count: 4
+Processed instructions count: 27
+Max basic block repetition in path: 1
+Thread entry points: 3
+Analyzed "main" function: True
+WARNING: Race condition when accessing the variable y (global) on line 31
+WARNING: Race condition when accessing the variable x (global) on line 30
+WARNING: Race condition when accessing the variable y (global) on line 9
+WARNING: Race condition when accessing the variable x (global) on line 9
+-----------------------------------------------------
+Elapsed time: 108.299970627 ms
+Analyzed path count: 4
+Processed instructions count: 27
+Max basic block repetition in path: 1
+Thread entry points: 3
+Analyzed "main" function: True
+WARNING: Race condition when accessing the variable y (global) on line 31
+WARNING: Race condition when accessing the variable x (global) on line 30
+WARNING: Race condition when accessing the variable y (global) on line 9
+WARNING: Race condition when accessing the variable x (global) on line 9
+-----------------------------------------------------
+Elapsed time: 138.147115707 ms
+Analyzed path count: 4
+Processed instructions count: 27
+Max basic block repetition in path: 1
+Thread entry points: 3
+Analyzed "main" function: True
+WARNING: Race condition when accessing the variable y (global) on line 31
+WARNING: Race condition when accessing the variable x (global) on line 30
+WARNING: Race condition when accessing the variable y (global) on line 9
+WARNING: Race condition when accessing the variable x (global) on line 9
+-----------------------------------------------------
+Elapsed time: 108.870983124 ms
+Analyzed path count: 4
+Processed instructions count: 27
+Max basic block repetition in path: 1
+Thread entry points: 3
+Analyzed "main" function: True
+WARNING: Race condition when accessing the variable y (global) on line 31
+WARNING: Race condition when accessing the variable x (global) on line 30
+WARNING: Race condition when accessing the variable y (global) on line 9
+WARNING: Race condition when accessing the variable x (global) on line 9
+-----------------------------------------------------
+Elapsed time: 111.871957779 ms
+Analyzed path count: 4
+Processed instructions count: 27
+Max basic block repetition in path: 1
+Thread entry points: 3
+Analyzed "main" function: True

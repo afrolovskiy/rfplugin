@@ -1,0 +1,45 @@
+WARNING: Race condition when accessing the variable fork1 (global) on line 10
+WARNING: Race condition when accessing the variable fork1 (global) on line 20
+-----------------------------------------------------
+Elapsed time: 525.139093399 ms
+Analyzed path count: 7
+Processed instructions count: 133
+Max basic block repetition in path: 9
+Thread entry points: 5
+Analyzed "main" function: False
+WARNING: Race condition when accessing the variable fork1 (global) on line 10
+WARNING: Race condition when accessing the variable fork1 (global) on line 20
+-----------------------------------------------------
+Elapsed time: 653.32198143 ms
+Analyzed path count: 7
+Processed instructions count: 133
+Max basic block repetition in path: 9
+Thread entry points: 5
+Analyzed "main" function: False
+WARNING: Race condition when accessing the variable fork1 (global) on line 10
+WARNING: Race condition when accessing the variable fork1 (global) on line 20
+-----------------------------------------------------
+Elapsed time: 499.459981918 ms
+Analyzed path count: 7
+Processed instructions count: 133
+Max basic block repetition in path: 9
+Thread entry points: 5
+Analyzed "main" function: False
+WARNING: Race condition when accessing the variable fork1 (global) on line 10
+WARNING: Race condition when accessing the variable fork1 (global) on line 20
+-----------------------------------------------------
+Elapsed time: 512.840986252 ms
+Analyzed path count: 7
+Processed instructions count: 133
+Max basic block repetition in path: 9
+Thread entry points: 5
+Analyzed "main" function: False
+WARNING: Race condition when accessing the variable fork1 (global) on line 10
+WARNING: Race condition when accessing the variable fork1 (global) on line 20
+-----------------------------------------------------
+Elapsed time: 638.271093369 ms
+Analyzed path count: 7
+Processed instructions count: 133
+Max basic block repetition in path: 9
+Thread entry points: 5
+Analyzed "main" function: False

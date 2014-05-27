@@ -358,7 +358,6 @@ class RaceFinder(gcc.IpaPass):
 
         pathes = self.build_pathes(fun)
         self.path_count += len(pathes)
-        print 'fun {} pathes {}'.format(fun.decl.name, len(pathes))
         for path in pathes:
             lockset, access_table = self.analyze_path(fun, path, copy.deepcopy(variables))
 

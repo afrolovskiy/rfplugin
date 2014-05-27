@@ -268,6 +268,7 @@ class RaceFinder(gcc.IpaPass):
         self.global_variables = {}
         self.entries = []
         self.path_count = 0
+        self.instr_count = 0
         self.MAX_LEVEL = int(gcc.argument_dict.get('max-level', 3))
 
     def execute(self, *args, **kwargs):
@@ -297,6 +298,7 @@ class RaceFinder(gcc.IpaPass):
         print '-----------------------------------------------------'
         print 'Elapsed time: {} ms'.format(elapsed_time * 1000)
         print 'Analyzed path count: {}'.format(self.path_count)
+        print 'Processed instructions count: {}'.format(self.instr_count)
         print 'Max basic block repetition in path: {}'.format(self.MAX_LEVEL)
         print 'Thread entry points: {}'.format(len(self.entries))
         print 'Analyzed "main" function: {}'.format(gcc.argument_dict.get('with-main') == 'true')
@@ -442,6 +444,7 @@ class RaceFinder(gcc.IpaPass):
         return local_variables
 
     def analyze_statement(self, stat, context):
+        self.instr_count = self.instr_count + 1
         self.analyze_access(stat, context)
         self.analyze_aliases(stat, context)
         if isinstance(stat, gcc.GimpleCall):

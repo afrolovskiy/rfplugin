@@ -30,6 +30,9 @@ int main(int argc, char** argv) {
     x = 0;
     y = 0;
 
+    pthread_mutex_init(&m1, NULL);
+    pthread_mutex_init(&m2, NULL);
+
     pthread_create(&thread1, NULL, run_thread1, NULL);
     pthread_create(&thread2, NULL, run_thread2, NULL);
 

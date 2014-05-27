@@ -12,7 +12,7 @@ void philosopher(pthread_mutex_t* mutex1, int* fork1, pthread_mutex_t* mutex2, i
 		pthread_mutex_lock(mutex2);
 		*fork2 = 1;
 
-        	sleep(1); // eat
+		sleep(1); // eat
 
 		*fork2 = 0;
 		pthread_mutex_lock(mutex2);

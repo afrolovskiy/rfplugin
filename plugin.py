@@ -358,6 +358,7 @@ class RaceFinder(gcc.IpaPass):
 
         pathes = self.build_pathes(fun)
         self.path_count += len(pathes)
+        print 'fun {} pathes {}'.format(fun.decl.name, len(pathes))
         for path in pathes:
             lockset, access_table = self.analyze_path(fun, path, copy.deepcopy(variables))
 
@@ -473,8 +474,6 @@ class RaceFinder(gcc.IpaPass):
         elif (isinstance(stat, gcc.GimpleCond) and stat.exprcode in
                 (gcc.EqExpr, gcc.NeExpr, gcc.LeExpr, gcc.LtExpr, gcc.GeExpr, gcc.GtExpr,)):
             # analyze left and right side of compare expression
-            self.analyze_value(stat.lhs, stat, context, GuardedAccess.READ)
-            self.analyze_value(stat.lhs, stat, context, GuardedAccess.READ)
             self.analyze_value(stat.lhs, stat, context, GuardedAccess.READ)
             self.analyze_value(stat.rhs, stat, context, GuardedAccess.READ)
 

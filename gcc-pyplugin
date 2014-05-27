@@ -1,3 +1,6 @@
 #!/bin/sh
-${CC:-gcc} -fplugin=${PLUGIN_ROOT:-/home/alex/gcc-python-plugin}/python.so -fplugin-arg-python-script=$@ -fplugin-arg-python-max-level=${MAX_LEVEL:-4}
+${CC:-gcc} -fplugin=${PLUGIN_ROOT:-/home/alex/gcc-python-plugin}/python.so \
+           -fplugin-arg-python-script=$@ \
+           -fplugin-arg-python-max-level=${MAX_LEVEL:-4} \
+           -fplugin-arg-python-with-main=${WITH_MAIN:-'false'}
 

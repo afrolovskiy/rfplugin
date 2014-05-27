@@ -290,10 +290,16 @@ class RaceFinder(gcc.IpaPass):
                    'on line {line}')
             print msg.format(**warn.to_dict())
 
+        if not warnings:
+            print 'OK'
+
         elapsed_time = time.time() - start_time
+        print '-----------------------------------------------------'
         print 'Elapsed time: {} ms'.format(elapsed_time * 1000)
         print 'Analyzed path count: {}'.format(self.path_count)
         print 'Max basic block repetition in path: {}'.format(self.MAX_LEVEL)
+        print 'Thread entry points: {}'.format(len(self.entries))
+        print 'Analyzed "main" function: {}'.format(gcc.argument_dict.get('with-main') == 'true')
 
     def init_global_variables(self):
         global_variables = {}
@@ -731,6 +737,12 @@ class RaceFinder(gcc.IpaPass):
 
     def find_races(self):
         warnings = set()
+
+        if gcc.argument_dict.get('with-main') == 'true':
+            # add 'main' summary to entry point
+            # TODO: get line for main
+            self.entries.append(ThreadEntry(function='main', line=None, accesses=self.summaries['main'].accesses))
+
         for idx1 in range(len(self.entries) - 1):
             for idx2 in range(idx1 + 1, len(self.entries)):
                 warnings = warnings.union(self.compare_accesses(self.entries[idx1], self.entries[idx2]))

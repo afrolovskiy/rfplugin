@@ -1,0 +1,20 @@
+Mean time(test11_2.c,false,1): 1084.97024775
+Mean time(test11_2.c,false,2): 5324.89039898
+Mean time(test11_2.c,false,3): 25750.50354
+Mean time(test11_2.c,false,4): 205958.813608
+Mean time(test11_2.c,false,5): 
+Mean time(test11_4.c,false,1): 1102.05739737
+Mean time(test11_4.c,false,2): 5203.69108915
+Mean time(test11_4.c,false,3): 27090.1176214
+Mean time(test11_4.c,false,4): 234302.584612
+Mean time(test11_6.c,false,1): 1153.55879068
+Mean time(test11_6.c,false,2): 5326.35726929
+Mean time(test11_6.c,false,3): 28736.6041541
+Mean time(test11_6.c,false,4): 198070.312607
+Mean time(test11_8.c,false,1): 1251.59624815
+Mean time(test11_8.c,false,2): 5368.97639036
+Mean time(test11_8.c,false,3): 29067.4826145
+Mean time(test11_8.c,false,4): 195182.998299
+Mean time(test11_10.c,false,1): 1384.02286172
+Mean time(test11_10.c,false,2): 5659.61103182
+Mean time(test11_10.c,false,3): 27211.5181446

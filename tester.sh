@@ -1,7 +1,7 @@
 #!/bin/bash
-REPEAT=10
+REPEAT=20
 #FILES='test1.c test2.c test3.c test4.c test5.c test6.c test7.c test8.c test9.c test10.c'
-FILES='test11_10.c'
+FILES='test11_6.c test11_8.c test11_10.c test11_12.c'
 
 for fname in $FILES
 do
@@ -25,7 +25,7 @@ do
 				echo 'iteration: '$i
 				./gcc-pyplugin plugin.py tests/$fname -lpthread  >> $out
 			done
-			echo 'Mean time('$fname','$with_main','$max_level'): '`less $out  | grep 'Elapsed' | cut -d\  -f3 | python -c "import sys;lines=[line for line in sys.stdin];print sum([float(line) for line in lines])/len(lines);"`
+			echo 'Mean time('$fname','$with_main','$max_level'): '`less $out  | grep 'Elapsed' | cut -d\  -f3 | python -c "import sys;lines=[line for line in sys.stdin];print sum([float(line) for line in lines])/len(lines);"` >> results/results.txt
 		done
 	done
 done

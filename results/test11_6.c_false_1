@@ -1,180 +1,45 @@
 WARNING: Race condition when accessing the variable buffer (global) on line 37
 WARNING: Race condition when accessing the variable buffer (global) on line 19
 -----------------------------------------------------
-Elapsed time: 1078.97281647 ms
+Elapsed time: 845.659971237 ms
 Analyzed path count: 18
-Processed instructions count: 618
+Processed instructions count: 626
 Max basic block repetition in path: 1
 Thread entry points: 6
 Analyzed "main" function: False
 WARNING: Race condition when accessing the variable buffer (global) on line 37
 WARNING: Race condition when accessing the variable buffer (global) on line 19
 -----------------------------------------------------
-Elapsed time: 1203.16004753 ms
+Elapsed time: 823.916912079 ms
 Analyzed path count: 18
-Processed instructions count: 618
+Processed instructions count: 626
 Max basic block repetition in path: 1
 Thread entry points: 6
 Analyzed "main" function: False
 WARNING: Race condition when accessing the variable buffer (global) on line 37
 WARNING: Race condition when accessing the variable buffer (global) on line 19
 -----------------------------------------------------
-Elapsed time: 1133.97192955 ms
+Elapsed time: 809.192895889 ms
 Analyzed path count: 18
-Processed instructions count: 618
+Processed instructions count: 626
 Max basic block repetition in path: 1
 Thread entry points: 6
 Analyzed "main" function: False
 WARNING: Race condition when accessing the variable buffer (global) on line 37
 WARNING: Race condition when accessing the variable buffer (global) on line 19
 -----------------------------------------------------
-Elapsed time: 1120.14484406 ms
+Elapsed time: 795.806884766 ms
 Analyzed path count: 18
-Processed instructions count: 618
+Processed instructions count: 626
 Max basic block repetition in path: 1
 Thread entry points: 6
 Analyzed "main" function: False
 WARNING: Race condition when accessing the variable buffer (global) on line 37
 WARNING: Race condition when accessing the variable buffer (global) on line 19
 -----------------------------------------------------
-Elapsed time: 1182.66916275 ms
+Elapsed time: 777.953863144 ms
 Analyzed path count: 18
-Processed instructions count: 618
-Max basic block repetition in path: 1
-Thread entry points: 6
-Analyzed "main" function: False
-WARNING: Race condition when accessing the variable buffer (global) on line 37
-WARNING: Race condition when accessing the variable buffer (global) on line 19
------------------------------------------------------
-Elapsed time: 1156.20303154 ms
-Analyzed path count: 18
-Processed instructions count: 618
-Max basic block repetition in path: 1
-Thread entry points: 6
-Analyzed "main" function: False
-WARNING: Race condition when accessing the variable buffer (global) on line 37
-WARNING: Race condition when accessing the variable buffer (global) on line 19
------------------------------------------------------
-Elapsed time: 1141.00003242 ms
-Analyzed path count: 18
-Processed instructions count: 618
-Max basic block repetition in path: 1
-Thread entry points: 6
-Analyzed "main" function: False
-WARNING: Race condition when accessing the variable buffer (global) on line 37
-WARNING: Race condition when accessing the variable buffer (global) on line 19
------------------------------------------------------
-Elapsed time: 1128.06510925 ms
-Analyzed path count: 18
-Processed instructions count: 618
-Max basic block repetition in path: 1
-Thread entry points: 6
-Analyzed "main" function: False
-WARNING: Race condition when accessing the variable buffer (global) on line 37
-WARNING: Race condition when accessing the variable buffer (global) on line 19
------------------------------------------------------
-Elapsed time: 1162.55688667 ms
-Analyzed path count: 18
-Processed instructions count: 618
-Max basic block repetition in path: 1
-Thread entry points: 6
-Analyzed "main" function: False
-WARNING: Race condition when accessing the variable buffer (global) on line 37
-WARNING: Race condition when accessing the variable buffer (global) on line 19
------------------------------------------------------
-Elapsed time: 1081.7091465 ms
-Analyzed path count: 18
-Processed instructions count: 618
-Max basic block repetition in path: 1
-Thread entry points: 6
-Analyzed "main" function: False
-WARNING: Race condition when accessing the variable buffer (global) on line 37
-WARNING: Race condition when accessing the variable buffer (global) on line 19
------------------------------------------------------
-Elapsed time: 1190.65189362 ms
-Analyzed path count: 18
-Processed instructions count: 618
-Max basic block repetition in path: 1
-Thread entry points: 6
-Analyzed "main" function: False
-WARNING: Race condition when accessing the variable buffer (global) on line 37
-WARNING: Race condition when accessing the variable buffer (global) on line 19
------------------------------------------------------
-Elapsed time: 1125.62203407 ms
-Analyzed path count: 18
-Processed instructions count: 618
-Max basic block repetition in path: 1
-Thread entry points: 6
-Analyzed "main" function: False
-WARNING: Race condition when accessing the variable buffer (global) on line 37
-WARNING: Race condition when accessing the variable buffer (global) on line 19
------------------------------------------------------
-Elapsed time: 1140.12503624 ms
-Analyzed path count: 18
-Processed instructions count: 618
-Max basic block repetition in path: 1
-Thread entry points: 6
-Analyzed "main" function: False
-WARNING: Race condition when accessing the variable buffer (global) on line 37
-WARNING: Race condition when accessing the variable buffer (global) on line 19
------------------------------------------------------
-Elapsed time: 1046.75197601 ms
-Analyzed path count: 18
-Processed instructions count: 618
-Max basic block repetition in path: 1
-Thread entry points: 6
-Analyzed "main" function: False
-WARNING: Race condition when accessing the variable buffer (global) on line 37
-WARNING: Race condition when accessing the variable buffer (global) on line 19
------------------------------------------------------
-Elapsed time: 1149.88088608 ms
-Analyzed path count: 18
-Processed instructions count: 618
-Max basic block repetition in path: 1
-Thread entry points: 6
-Analyzed "main" function: False
-WARNING: Race condition when accessing the variable buffer (global) on line 37
-WARNING: Race condition when accessing the variable buffer (global) on line 19
------------------------------------------------------
-Elapsed time: 1205.87491989 ms
-Analyzed path count: 18
-Processed instructions count: 618
-Max basic block repetition in path: 1
-Thread entry points: 6
-Analyzed "main" function: False
-WARNING: Race condition when accessing the variable buffer (global) on line 37
-WARNING: Race condition when accessing the variable buffer (global) on line 19
------------------------------------------------------
-Elapsed time: 1208.99891853 ms
-Analyzed path count: 18
-Processed instructions count: 618
-Max basic block repetition in path: 1
-Thread entry points: 6
-Analyzed "main" function: False
-WARNING: Race condition when accessing the variable buffer (global) on line 37
-WARNING: Race condition when accessing the variable buffer (global) on line 19
------------------------------------------------------
-Elapsed time: 1153.12814713 ms
-Analyzed path count: 18
-Processed instructions count: 618
-Max basic block repetition in path: 1
-Thread entry points: 6
-Analyzed "main" function: False
-WARNING: Race condition when accessing the variable buffer (global) on line 37
-WARNING: Race condition when accessing the variable buffer (global) on line 19
------------------------------------------------------
-Elapsed time: 1188.0030632 ms
-Analyzed path count: 18
-Processed instructions count: 618
-Max basic block repetition in path: 1
-Thread entry points: 6
-Analyzed "main" function: False
-WARNING: Race condition when accessing the variable buffer (global) on line 37
-WARNING: Race condition when accessing the variable buffer (global) on line 19
------------------------------------------------------
-Elapsed time: 1273.68593216 ms
-Analyzed path count: 18
-Processed instructions count: 618
+Processed instructions count: 626
 Max basic block repetition in path: 1
 Thread entry points: 6
 Analyzed "main" function: False

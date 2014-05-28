@@ -45,7 +45,7 @@ void* writer(void* args) {
 }
 
 int main(int argc, char** argv) {
-    pthread_t thread1, thread2, thread3, thread4, thread5, thread6;
+    pthread_t thread1, thread2, thread3, thread4, thread5, thread6, thread7, thread8;
 
     pthread_mutex_init(&reader_count_mutex, NULL);
     pthread_mutex_init(&reader_mutex, NULL);
@@ -53,15 +53,15 @@ int main(int argc, char** argv) {
 
     // create readers
     pthread_create(&thread1, NULL, reader, NULL);
-    pthread_create(&thread1, NULL, reader, NULL);
-    pthread_create(&thread1, NULL, reader, NULL);
-    pthread_create(&thread1, NULL, reader, NULL);
+    pthread_create(&thread2, NULL, reader, NULL);
+    pthread_create(&thread3, NULL, reader, NULL);
+    pthread_create(&thread4, NULL, reader, NULL);
 
     // create writers
     pthread_create(&thread5, NULL, writer, NULL);
-    pthread_create(&thread5, NULL, writer, NULL);
-    pthread_create(&thread5, NULL, writer, NULL);
-    pthread_create(&thread5, NULL, writer, NULL);
+    pthread_create(&thread6, NULL, writer, NULL);
+    pthread_create(&thread7, NULL, writer, NULL);
+    pthread_create(&thread8, NULL, writer, NULL);
 
     pthread_join(thread1, NULL);
     pthread_join(thread2, NULL);
@@ -69,5 +69,8 @@ int main(int argc, char** argv) {
     pthread_join(thread4, NULL);
     pthread_join(thread5, NULL);
     pthread_join(thread6, NULL);
+    pthread_join(thread7, NULL);
+    pthread_join(thread8, NULL);
+
     return 0;
 }

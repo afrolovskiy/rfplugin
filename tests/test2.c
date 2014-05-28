@@ -22,8 +22,6 @@ void* run_thread2(void* args) {
     return NULL;
 }
 
-
-
 int main(int argc, char** argv) {
     pthread_t thread1, thread2;
 
@@ -35,6 +33,9 @@ int main(int argc, char** argv) {
 
     pthread_create(&thread1, NULL, run_thread1, NULL);
     pthread_create(&thread2, NULL, run_thread2, NULL);
+
+    pthread_mutex_destroy(&m1);
+    pthread_mutex_destroy(&m2);
 
     return 0;
 }

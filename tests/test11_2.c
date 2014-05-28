@@ -45,7 +45,7 @@ void* writer(void* args) {
 }
 
 int main(int argc, char** argv) {
-    pthread_t thread1, thread2, thread3, thread4, thread5, thread6;
+    pthread_t thread1, thread2;
 
     pthread_mutex_init(&reader_count_mutex, NULL);
     pthread_mutex_init(&reader_mutex, NULL);
@@ -55,13 +55,10 @@ int main(int argc, char** argv) {
     pthread_create(&thread1, NULL, reader, NULL);
 
     // create writers
-    pthread_create(&thread5, NULL, writer, NULL);
+    pthread_create(&thread2, NULL, writer, NULL);
 
     pthread_join(thread1, NULL);
     pthread_join(thread2, NULL);
-    pthread_join(thread3, NULL);
-    pthread_join(thread4, NULL);
-    pthread_join(thread5, NULL);
-    pthread_join(thread6, NULL);
+
     return 0;
 }

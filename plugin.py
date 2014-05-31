@@ -654,8 +654,12 @@ class RaceFinder(gcc.IpaPass):
                 summary = self.summaries[fname]
             summary = self.rebind_summary(summary, stat.args, context)
             # update current lockset and access table
-            context.lockset.update(summary.lockset)
+            for access in summary.accesses:
+                lockset = copy.deepcopy(context.lockset)
+                lockset.update(access.lockset)
+                access.lockset = lockset
             context.accesses.update(summary.accesses)
+            context.lockset.update(summary.lockset)
 
     def rebind_summary(self, summary, args, context):
         summary = copy.deepcopy(summary)

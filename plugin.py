@@ -781,12 +781,12 @@ class RaceFinder(gcc.IpaPass):
                 if self.has_race(ga1, ga2):
                     warnings.add(Warning(
                         variable=ga1.access.name,
-                        visibility=ga1.access.visibility,
+                        visibility='{}:{}'.format(ga1.access.area or 'all', ga1.access.visibility),
                         line=ga1.line
                     ))
                     warnings.add(Warning(
                         variable=ga2.access.name,
-                        visibility=ga2.access.visibility,
+                        visibility='{}:{}'.format(ga2.access.area or 'all', ga2.access.visibility),
                         line=ga2.line
                     ))
         return warnings

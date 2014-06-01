@@ -20,8 +20,8 @@ void* run_thread1(void* args) {
 }
 
 void* run_thread2(void* args) {
-    //int* pcount = (int *) args;
-    //*pcount = 123;
+    int* pcount = (int *) args;
+    *pcount = 123;
     munge(&x, &m1);
     munge(&y, &m1);
     return NULL;

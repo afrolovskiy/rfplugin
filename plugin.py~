@@ -286,6 +286,7 @@ class RaceFinder(gcc.IpaPass):
                 self.analyze_node(node)
 
         # generate warnings
+        import ipdb; ipdb.set_trace()
         warnings = self.find_races()
 
         for warn in warnings:
@@ -360,6 +361,7 @@ class RaceFinder(gcc.IpaPass):
         variables = self.init_variables(fun)
 
         lockset_summary, access_summary = None, None
+        import ipdb; ipdb.set_trace()
 
         pathes = self.build_pathes(fun)
         self.path_count += len(pathes)
@@ -447,10 +449,6 @@ class RaceFinder(gcc.IpaPass):
         return local_variables
 
     def analyze_statement(self, stat, context):
-        #print '{}: {}'.format(str(context.fun.decl), str(stat))
-        if 'CLOBBER' in str(stat):
-            # fixed magic bug with segmantation
-            return
         self.instr_count = self.instr_count + 1
         self.analyze_access(stat, context)
         self.analyze_aliases(stat, context)
